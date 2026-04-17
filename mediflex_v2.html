@@ -1,0 +1,2857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mediflex Nepal – Financial CRM v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ===================== RESET & ROOT ===================== */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0a0f1e;
+  --ink2:#1e2640;
+  --ink3:#3a4466;
+  --muted:#6b7599;
+  --line:#dde2f0;
+  --bg:#f4f6fc;
+  --white:#ffffff;
+  --blue:#1a3fa8;
+  --blue2:#2755d4;
+  --bluep:#e8eeff;
+  --green:#0d7a4e;
+  --greenp:#e6f7f0;
+  --red:#c0392b;
+  --redp:#fdecea;
+  --gold:#b8860b;
+  --goldp:#fdf6e3;
+  --orange:#d4680a;
+  --orangep:#fef3e8;
+  --purple:#5b2d8e;
+  --purplep:#f3eeff;
+  --teal:#0d7a6e;
+  --tealp:#e6f7f5;
+  --sidebar-w:240px;
+  --topbar-h:56px;
+  --radius:8px;
+  --shadow:0 2px 12px rgba(10,15,30,0.08);
+  --shadow-lg:0 8px 32px rgba(10,15,30,0.14);
+  --font:'IBM Plex Sans',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+/* ===================== LAYOUT ===================== */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--ink);
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  position:relative;
+  border-right:1px solid rgba(255,255,255,0.06);
+}
+#sidebar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--blue2),#6c63ff,var(--teal));
+}
+.brand{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.brand-logo{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.brand-icon{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue2),#6c63ff);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.brand-name{color:#fff;font-size:14px;font-weight:700;letter-spacing:-.3px}
+.brand-sub{color:rgba(255,255,255,0.38);font-size:11px;font-family:var(--mono)}
+.brand-fy{
+  margin-top:10px;display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.07);border-radius:6px;
+  padding:6px 10px;cursor:pointer;transition:background .15s;
+}
+.brand-fy:hover{background:rgba(255,255,255,0.12)}
+.brand-fy-text{color:rgba(255,255,255,0.85);font-size:12px;font-weight:600;font-family:var(--mono)}
+.brand-fy-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0;box-shadow:0 0 6px #4ade80}
+
+.nav-section{padding:10px 0 0}
+.nav-lbl{
+  color:rgba(255,255,255,0.28);font-size:10px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:6px 16px 3px;font-family:var(--mono);
+}
+.ni{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 16px;cursor:pointer;
+  color:rgba(255,255,255,0.58);font-size:12.5px;font-weight:500;
+  border-left:2px solid transparent;
+  transition:all .15s;user-select:none;position:relative;
+}
+.ni:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.88)}
+.ni.active{
+  background:rgba(255,255,255,0.1);color:#fff;
+  border-left-color:#6c63ff;font-weight:600;
+}
+.ni-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.ni-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:10px;font-weight:700;border-radius:10px;
+  padding:1px 6px;font-family:var(--mono);
+}
+
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#topbar{
+  height:var(--topbar-h);background:var(--white);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;
+  padding:0 24px;gap:12px;flex-shrink:0;
+}
+#page-title{font-size:15px;font-weight:700;flex:1;color:var(--ink)}
+.top-badge{
+  background:var(--bluep);color:var(--blue2);
+  font-size:11px;padding:4px 12px;border-radius:20px;
+  font-weight:700;font-family:var(--mono);white-space:nowrap;
+}
+.top-fy{
+  background:var(--ink);color:#fff;
+  font-size:11px;padding:4px 12px;border-radius:20px;
+  font-weight:700;font-family:var(--mono);cursor:pointer;
+  border:none;white-space:nowrap;transition:background .15s;
+}
+.top-fy:hover{background:var(--blue2)}
+#content{flex:1;overflow-y:auto;padding:22px}
+.sec{display:none}.sec.active{display:block}
+
+/* ===================== CARDS & STATS ===================== */
+.card{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--line);padding:20px;margin-bottom:16px;
+}
+.card-title{font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title-icon{font-size:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.stat{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--line);padding:16px;
+  position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;
+}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:var(--radius) var(--radius) 0 0;
+}
+.stat.bl::after{background:var(--blue2)}
+.stat.gr::after{background:var(--green)}
+.stat.rd::after{background:var(--red)}
+.stat.or::after{background:var(--orange)}
+.stat.gd::after{background:var(--gold)}
+.stat.pu::after{background:var(--purple)}
+.stat.tl::after{background:var(--teal)}
+.stat-lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;font-family:var(--mono)}
+.stat-val{font-size:18px;font-weight:700;font-family:var(--mono);color:var(--ink)}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ===================== TABLE ===================== */
+.tw{overflow-x:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:12.5px}
+table.dt th{
+  background:var(--bg);padding:8px 10px;text-align:left;
+  font-weight:700;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted);
+  border-bottom:2px solid var(--line);
+  white-space:nowrap;font-family:var(--mono);
+}
+table.dt td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.dt tr:last-child td{border-bottom:none}
+table.dt tr:hover td{background:#fafbff}
+.num{font-family:var(--mono);text-align:right}
+.tfoot-row td{background:var(--ink);color:#fff;font-weight:700;font-family:var(--mono);padding:10px}
+
+/* ===================== BADGES ===================== */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;font-family:var(--mono);white-space:nowrap}
+.bs{background:var(--greenp);color:var(--green)}
+.br{background:var(--redp);color:var(--red)}
+.bw{background:var(--orangep);color:var(--orange)}
+.bi{background:var(--bluep);color:var(--blue2)}
+.bg{background:var(--goldp);color:var(--gold)}
+.bp{background:var(--purplep);color:var(--purple)}
+.bt{background:var(--tealp);color:var(--teal)}
+
+/* ===================== BUTTONS ===================== */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:6px;border:none;
+  cursor:pointer;font-size:12.5px;font-weight:600;
+  transition:all .15s;font-family:var(--font);
+  white-space:nowrap;
+}
+.btn-primary{background:var(--blue2);color:#fff}
+.btn-primary:hover{background:var(--blue)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{opacity:.88}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{opacity:.88}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-gold:hover{opacity:.88}
+.btn-outline{background:transparent;color:var(--blue2);border:1.5px solid var(--blue2)}
+.btn-outline:hover{background:var(--bluep)}
+.btn-outline-red{background:transparent;color:var(--red);border:1.5px solid var(--red)}
+.btn-outline-red:hover{background:var(--redp)}
+.btn-ghost{background:var(--bg);color:var(--ink2);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--line)}
+.btn-sm{padding:5px 10px;font-size:11.5px}
+.btn-xs{padding:3px 8px;font-size:11px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ===================== FORMS ===================== */
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11.5px;font-weight:700;color:var(--ink3);font-family:var(--mono)}
+.fg input,.fg select,.fg textarea{
+  padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;
+  font-family:var(--font);font-size:13px;color:var(--ink);background:var(--white);
+  transition:border .15s,box-shadow .15s;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{
+  outline:none;border-color:var(--blue2);
+  box-shadow:0 0 0 3px rgba(39,85,212,.1);
+}
+.fg input[readonly]{background:var(--bg);color:var(--muted);cursor:default}
+.fg input.is-error{border-color:var(--red)}
+.form-error{font-size:11px;color:var(--red);margin-top:2px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.fgrid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.flex-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+
+/* ===================== TABS ===================== */
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tab{
+  padding:8px 16px;cursor:pointer;font-size:12.5px;font-weight:600;
+  color:var(--muted);border-radius:6px 6px 0 0;
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:all .15s;font-family:var(--mono);
+}
+.tab.active{color:var(--blue2);border-bottom-color:var(--blue2);background:var(--bluep)}
+.tab:hover:not(.active){color:var(--ink2);background:var(--bg)}
+.tp{display:none}.tp.active{display:block}
+
+/* ===================== P&L / REPORT BLOCKS ===================== */
+.rpt-block{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:12px}
+.rpt-hdr{
+  background:var(--ink2);color:#fff;padding:11px 18px;
+  font-weight:700;font-size:12.5px;display:flex;justify-content:space-between;
+  font-family:var(--mono);letter-spacing:.03em;
+}
+.rpt-row{display:flex;justify-content:space-between;align-items:center;padding:8px 18px;border-bottom:1px solid var(--line);font-size:13px}
+.rpt-row:last-child{border-bottom:none}
+.rpt-row.sub{padding-left:36px;color:var(--muted)}
+.rpt-row.sub2{padding-left:52px;color:var(--muted);font-size:12px}
+.rpt-row.tot{background:var(--bg);font-weight:700;font-family:var(--mono)}
+.rpt-row.profit{background:var(--greenp);font-weight:700;color:var(--green);font-family:var(--mono)}
+.rpt-row.loss{background:var(--redp);font-weight:700;color:var(--red);font-family:var(--mono)}
+.rpt-row.section{background:var(--bluep);font-weight:700;color:var(--blue2);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.rpa{font-family:var(--mono);font-weight:700}
+
+/* ===================== MODAL ===================== */
+.ov{display:none;position:fixed;inset:0;background:rgba(10,15,30,.55);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.ov.open{display:flex}
+.modal{
+  background:var(--white);border-radius:12px;padding:28px;
+  max-width:680px;width:95%;max-height:90vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);animation:mIn .2s ease;
+}
+@keyframes mIn{from{transform:translateY(20px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+.modal-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px}
+.modal-close{cursor:pointer;font-size:20px;color:var(--muted);line-height:1;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px}
+.modal-close:hover{background:var(--redp);color:var(--red)}
+.modal-footer{margin-top:18px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--line);padding-top:14px}
+.modal-section{font-size:11.5px;font-weight:700;color:var(--blue2);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;font-family:var(--mono)}
+
+/* ===================== INFO BOXES ===================== */
+.info-box{border-radius:var(--radius);padding:12px 16px;font-size:12.5px;line-height:1.7;margin-bottom:14px}
+.info-blue{background:var(--bluep);border:1px solid #b8ccf0;color:var(--blue)}
+.info-green{background:var(--greenp);border:1px solid #a5d6c0}
+.info-orange{background:var(--orangep);border:1px solid #f0c090}
+.info-red{background:var(--redp);border:1px solid #f0b8b0}
+
+/* ===================== CHARTS ===================== */
+.chart-box{position:relative;height:240px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+
+/* ===================== SEARCH ===================== */
+.srch{
+  padding:7px 12px;border:1.5px solid var(--line);
+  border-radius:6px;font-size:13px;font-family:var(--font);
+  background:var(--white);color:var(--ink);
+}
+.srch:focus{outline:none;border-color:var(--blue2)}
+
+/* ===================== TOAST ===================== */
+#toast{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.ti{padding:10px 18px;border-radius:8px;color:#fff;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);animation:sin .25s ease;font-family:var(--mono)}
+.ti.s{background:var(--green)}.ti.e{background:var(--red)}.ti.i{background:var(--blue2)}.ti.w{background:var(--orange)}
+@keyframes sin{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+
+/* ===================== ATTENDANCE ===================== */
+.att-tbl{border-collapse:collapse;font-size:11.5px;min-width:100%}
+.att-tbl th,.att-tbl td{padding:4px 3px;border:1px solid var(--line);text-align:center}
+.att-tbl th{background:var(--ink2);color:#fff;font-size:10.5px;font-weight:700;font-family:var(--mono)}
+.att-emp{text-align:left!important;padding:5px 10px!important;min-width:160px;background:var(--bg);font-weight:600;position:sticky;left:0;z-index:2;border-right:2px solid var(--line)}
+.att-sel{border:none;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;padding:2px 1px;width:36px;text-align:center;font-family:var(--mono)}
+.att-P{background:var(--greenp);color:var(--green)}
+.att-A{background:var(--redp);color:var(--red)}
+.att-H{background:var(--goldp);color:var(--gold)}
+.att-L{background:var(--orangep);color:var(--orange)}
+.att-WFH{background:var(--bluep);color:var(--blue2)}
+.att-{background:var(--bg);color:var(--muted)}
+
+/* ===================== MONTH CHIPS ===================== */
+.mchip{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);background:var(--white);color:var(--muted);transition:all .15s;font-family:var(--mono)}
+.mchip:hover{border-color:var(--blue2);color:var(--blue2)}
+.mchip.active{background:var(--blue2);color:#fff;border-color:var(--blue2)}
+.month-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+
+/* ===================== SALARY CALC PANEL ===================== */
+.calc-panel{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:14px}
+.calc-panel .calc-title{font-size:12px;font-weight:700;color:var(--blue2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono)}
+.calc-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.calc-row:last-child{border-bottom:none;font-weight:700;margin-top:4px;font-family:var(--mono)}
+.calc-row.highlight{color:var(--blue2);font-weight:700}
+.calc-row.deduct{color:var(--red)}
+.calc-row.net{color:var(--green);font-size:14px;font-weight:700}
+.calc-row.tax{color:var(--orange)}
+
+/* ===================== JOURNAL ===================== */
+.je-line{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:6px}
+.je-line input{padding:6px 8px;border:1px solid var(--line);border-radius:4px;font-size:12.5px;font-family:var(--font)}
+.je-add-btn{margin-top:8px}
+
+/* ===================== FY SETTINGS ===================== */
+.fy-card{border:1.5px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:12px;transition:border .15s}
+.fy-card.active-fy{border-color:var(--blue2);background:var(--bluep)}
+.fy-year{font-size:15px;font-weight:700;font-family:var(--mono)}
+.fy-meta{font-size:12px;color:var(--muted)}
+
+/* ===================== TAX CALCULATOR WIDGET ===================== */
+.tax-band-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:12.5px}
+.tax-band-label{width:260px;color:var(--ink2)}
+.tax-band-rate{width:50px;text-align:right;font-family:var(--mono);font-weight:700;color:var(--blue2)}
+.tax-band-amount{flex:1;text-align:right;font-family:var(--mono);color:var(--green)}
+.tax-progress{height:6px;background:var(--line);border-radius:3px;margin-top:2px;overflow:hidden}
+.tax-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue2),var(--teal));border-radius:3px;transition:width .5s ease}
+
+/* ===================== PERIOD LOCK ===================== */
+.lock-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--redp);color:var(--red);border-radius:4px;
+  padding:2px 8px;font-size:11px;font-weight:700;font-family:var(--mono);
+}
+.unlock-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--greenp);color:var(--green);border-radius:4px;
+  padding:2px 8px;font-size:11px;font-weight:700;font-family:var(--mono);
+}
+
+/* ===================== JOURNAL ENTRY TABLE ===================== */
+.je-tbl td.je-debit{color:var(--blue2);font-family:var(--mono);font-weight:700}
+.je-tbl td.je-credit{color:var(--red);font-family:var(--mono);font-weight:700;padding-left:30px}
+
+/* ===================== SCROLLBAR ===================== */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ===================== EMPTY ===================== */
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+.empty-icon{font-size:32px;margin-bottom:8px;display:block;opacity:.4}
+
+/* ===================== PRINT ===================== */
+@media print{
+  #sidebar,#topbar,.no-print{display:none!important}
+  body{background:white}
+  .sec{display:block!important}
+  .card,.rpt-block{page-break-inside:avoid}
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media(max-width:768px){
+  :root{--sidebar-w:52px}
+  .brand-name,.brand-sub,.brand-fy-text,.nav-lbl,.ni span:not(.ni-icon){display:none}
+  .ni{justify-content:center;padding:11px;border-left:none;border-bottom:2px solid transparent}
+  .ni.active{border-bottom-color:#6c63ff;border-left:none}
+  .g2,.g3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ============================== SIDEBAR ============================== -->
+<nav id="sidebar">
+  <div class="brand">
+    <div class="brand-logo">
+      <div class="brand-icon">🏥</div>
+      <div>
+        <div class="brand-name">Mediflex Nepal</div>
+        <div class="brand-sub">Financial CRM v2</div>
+      </div>
+    </div>
+    <div class="brand-fy" onclick="goto('settings',document.getElementById('nav-settings'))">
+      <div class="brand-fy-dot"></div>
+      <span class="brand-fy-text" id="sidebar-fy">FY 2082/83</span>
+      <span style="color:rgba(255,255,255,0.4);font-size:10px;margin-left:auto">▾</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-lbl">Overview</div>
+    <div class="ni active" id="nav-dashboard" onclick="goto('dashboard',this)"><span class="ni-icon">📊</span><span>Dashboard</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-lbl">Accounting</div>
+    <div class="ni" id="nav-journal"    onclick="goto('journal',this)"><span class="ni-icon">📒</span><span>Journal Entries</span></div>
+    <div class="ni" id="nav-ledger"     onclick="goto('ledger',this)"><span class="ni-icon">📗</span><span>General Ledger</span></div>
+    <div class="ni" id="nav-trial"      onclick="goto('trial',this)"><span class="ni-icon">⚖️</span><span>Trial Balance</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-lbl">Financials</div>
+    <div class="ni" id="nav-income"     onclick="goto('income',this)"><span class="ni-icon">💰</span><span>Income</span></div>
+    <div class="ni" id="nav-expenses"   onclick="goto('expenses',this)"><span class="ni-icon">📉</span><span>Expenses</span></div>
+    <div class="ni" id="nav-bank"       onclick="goto('bank',this)"><span class="ni-icon">🏦</span><span>Bank Reconciliation</span></div>
+    <div class="ni" id="nav-assets"     onclick="goto('assets',this)"><span class="ni-icon">🖥️</span><span>Fixed Assets</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-lbl">Tax & Compliance</div>
+    <div class="ni" id="nav-payroll"    onclick="goto('payroll',this)"><span class="ni-icon">💼</span><span>Payroll & TDS</span></div>
+    <div class="ni" id="nav-tds"        onclick="goto('tds',this)"><span class="ni-icon">📄</span><span>TDS Register</span></div>
+    <div class="ni" id="nav-vat"        onclick="goto('vat',this)"><span class="ni-icon">🧾</span><span>VAT Register</span></div>
+    <div class="ni" id="nav-taxcalc"    onclick="goto('taxcalc',this)"><span class="ni-icon">🧮</span><span>Tax Calculator</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-lbl">Reports</div>
+    <div class="ni" id="nav-pl"         onclick="goto('pl',this)"><span class="ni-icon">📈</span><span>P&amp;L Statement</span></div>
+    <div class="ni" id="nav-bs"         onclick="goto('bs',this)"><span class="ni-icon">📋</span><span>Balance Sheet</span></div>
+    <div class="ni" id="nav-cashflow"   onclick="goto('cashflow',this)"><span class="ni-icon">💧</span><span>Cash Flow</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-lbl">HR</div>
+    <div class="ni" id="nav-attendance" onclick="goto('attendance',this)"><span class="ni-icon">📅</span><span>Attendance</span></div>
+    <div class="ni" id="nav-staff"      onclick="goto('staff',this)"><span class="ni-icon">👥</span><span>Staff Directory</span></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-lbl">System</div>
+    <div class="ni" id="nav-settings"   onclick="goto('settings',this)"><span class="ni-icon">⚙️</span><span>FY &amp; Settings</span></div>
+    <div class="ni" id="nav-taxconfig"  onclick="goto('taxconfig',this)"><span class="ni-icon">🔧</span><span>Tax Config</span></div>
+    <div class="ni" id="nav-export"     onclick="goto('export',this)"><span class="ni-icon">📥</span><span>Export / Backup</span></div>
+  </div>
+</nav>
+
+<!-- ============================== MAIN ============================== -->
+<div id="main">
+  <div id="topbar">
+    <div id="page-title">Dashboard</div>
+    <div id="lock-indicator"></div>
+    <button class="top-fy" onclick="goto('settings',document.getElementById('nav-settings'))">📅 <span id="topbar-fy">FY 2082/83</span></button>
+    <span class="top-badge" id="topbar-ad">2025/26</span>
+  </div>
+  <div id="content">
+
+  <!-- =================== DASHBOARD =================== -->
+  <div id="sec-dashboard" class="sec active">
+    <div class="stats">
+      <div class="stat bl"><div class="stat-lbl">Total Income (FY)</div><div class="stat-val" id="d-inc" style="color:var(--green)">NPR 0</div><div class="stat-sub" id="d-fy-lbl">Current Year</div></div>
+      <div class="stat rd"><div class="stat-lbl">Total Expenses (FY)</div><div class="stat-val" id="d-exp" style="color:var(--red)">NPR 0</div><div class="stat-sub">All Categories</div></div>
+      <div class="stat gr"><div class="stat-lbl">Net Profit / Loss</div><div class="stat-val" id="d-profit">NPR 0</div><div class="stat-sub">Income − Expenses</div></div>
+      <div class="stat or"><div class="stat-lbl">Bank Balance</div><div class="stat-val" id="d-bank">NPR 0</div><div class="stat-sub">Closing Balance</div></div>
+      <div class="stat gd"><div class="stat-lbl">TDS Payable</div><div class="stat-val" id="d-tds">NPR 0</div><div class="stat-sub">Pending IRD</div></div>
+      <div class="stat pu"><div class="stat-lbl">VAT Payable</div><div class="stat-val" id="d-vat">NPR 0</div><div class="stat-sub">Net Output − Input</div></div>
+      <div class="stat tl"><div class="stat-lbl">Active Staff</div><div class="stat-val" id="d-staff">0</div><div class="stat-sub">Employees</div></div>
+    </div>
+    <div class="g2">
+      <div class="card"><div class="card-title"><span class="card-title-icon">📊</span>Monthly Income vs Expenses</div><div class="chart-box"><canvas id="chart-monthly"></canvas></div></div>
+      <div class="card"><div class="card-title"><span class="card-title-icon">🍩</span>Expense Breakdown</div><div class="chart-box"><canvas id="chart-cat"></canvas></div></div>
+    </div>
+    <div class="g2">
+      <div class="card"><div class="card-title"><span class="card-title-icon">🕐</span>Recent Transactions</div><div class="tw"><table class="dt"><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th></tr></thead><tbody id="d-recent"></tbody></table></div></div>
+      <div class="card"><div class="card-title"><span class="card-title-icon">🔔</span>Alerts &amp; Reminders</div><div id="d-alerts"></div></div>
+    </div>
+  </div>
+
+  <!-- =================== JOURNAL =================== -->
+  <div id="sec-journal" class="sec">
+    <div class="info-box info-blue"><b>Double-Entry System:</b> Every journal entry must balance — total Debits must equal total Credits. The system validates before saving.</div>
+    <div class="flex-row">
+      <input class="srch" placeholder="Search journal…" oninput="filterRows('je-body',this.value)" style="width:220px">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="openModal('journal')">+ New Journal Entry</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('je-body','Journal_Entries')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt je-tbl"><thead><tr><th>J#</th><th>Date</th><th>Ref</th><th>Description</th><th>Account</th><th>Debit (Dr)</th><th>Credit (Cr)</th><th>Month</th><th></th></tr></thead>
+      <tbody id="je-body"></tbody>
+      <tfoot><tr class="tfoot-row"><td colspan="5">TOTALS</td><td class="num" id="je-tot-dr">0.00</td><td class="num" id="je-tot-cr">0.00</td><td colspan="2"></td></tr></tfoot>
+      </table>
+    </div></div>
+  </div>
+
+  <!-- =================== LEDGER =================== -->
+  <div id="sec-ledger" class="sec">
+    <div class="flex-row">
+      <div style="display:flex;gap:10px;align-items:center">
+        <select id="ledger-acct" class="srch" onchange="renderLedger()" style="width:240px">
+          <option value="">-- Select Account --</option>
+        </select>
+        <select id="ledger-month" class="srch" onchange="renderLedger()" style="width:160px">
+          <option value="">All Months</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="exportTable('ledger-body','Ledger')">⬇ Export</button>
+    </div>
+    <div class="g3" style="margin-bottom:14px">
+      <div class="stat bl"><div class="stat-lbl">Opening Balance</div><div class="stat-val num" id="led-open">0.00</div></div>
+      <div class="stat gr"><div class="stat-lbl">Total Debits</div><div class="stat-val num" id="led-dr">0.00</div></div>
+      <div class="stat rd"><div class="stat-lbl">Total Credits</div><div class="stat-val num" id="led-cr">0.00</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>Date</th><th>Description</th><th>J#</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead>
+      <tbody id="ledger-body"></tbody>
+      </table>
+    </div></div>
+  </div>
+
+  <!-- =================== TRIAL BALANCE =================== -->
+  <div id="sec-trial" class="sec">
+    <div class="flex-row">
+      <div>
+        <div style="font-size:13px;color:var(--muted)">As at: <b id="trial-date">End of Period</b></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('trial-body','Trial_Balance')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line)">
+        <div style="font-size:17px;font-weight:700;color:var(--ink)">MEDIFLEX NEPAL PVT. LTD.</div>
+        <div style="font-size:13px;color:var(--muted)" id="trial-title">Trial Balance — FY 2082/83</div>
+      </div>
+      <div class="tw">
+        <table class="dt">
+          <thead><tr><th>Account Head</th><th>Code</th><th>Type</th><th>Debit (NPR)</th><th>Credit (NPR)</th></tr></thead>
+          <tbody id="trial-body"></tbody>
+          <tfoot>
+            <tr class="tfoot-row">
+              <td colspan="3">TOTAL</td>
+              <td class="num" id="trial-tot-dr">0.00</td>
+              <td class="num" id="trial-tot-cr">0.00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div id="trial-status" style="margin-top:12px;text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- =================== INCOME =================== -->
+  <div id="sec-income" class="sec">
+    <div class="flex-row">
+      <input class="srch" placeholder="Search income…" oninput="filterRows('inc-body',this.value)" style="width:200px">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="openModal('income')">+ Add Income</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('inc-body','Income_Register')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat gr"><div class="stat-lbl">Total Income</div><div class="stat-val" id="inc-tot" style="color:var(--green)">NPR 0</div></div>
+      <div class="stat bl"><div class="stat-lbl">Bank Receipts</div><div class="stat-val" id="inc-bnk">NPR 0</div></div>
+      <div class="stat or"><div class="stat-lbl">Cash Receipts</div><div class="stat-val" id="inc-csh">NPR 0</div></div>
+      <div class="stat tl"><div class="stat-lbl">VAT Collected</div><div class="stat-val" id="inc-vat">NPR 0</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>#</th><th>Month</th><th>Date</th><th>Head</th><th>Description</th><th>Party</th><th>PAN</th><th>Invoice</th><th>Amount</th><th>VAT</th><th>Total</th><th>Mode</th><th>Remarks</th><th></th></tr></thead>
+      <tbody id="inc-body"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- =================== EXPENSES =================== -->
+  <div id="sec-expenses" class="sec">
+    <div class="flex-row">
+      <input class="srch" placeholder="Search expenses…" oninput="filterRows('exp-body',this.value)" style="width:200px">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="openModal('expense')">+ Add Expense</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('exp-body','Expense_Register')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat rd"><div class="stat-lbl">Total Expenses</div><div class="stat-val" id="exp-tot" style="color:var(--red)">NPR 0</div></div>
+      <div class="stat"><div class="stat-lbl" style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase">Salary &amp; Wages</div><div class="stat-val" id="exp-sal">NPR 0</div></div>
+      <div class="stat"><div class="stat-lbl" style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase">Rent</div><div class="stat-val" id="exp-rnt">NPR 0</div></div>
+      <div class="stat"><div class="stat-lbl" style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase">Tax/TDS</div><div class="stat-val" id="exp-tax">NPR 0</div></div>
+      <div class="stat"><div class="stat-lbl" style="font-family:var(--mono);font-size:10.5px;text-transform:uppercase">Admin &amp; Other</div><div class="stat-val" id="exp-oth">NPR 0</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>#</th><th>Month</th><th>Date</th><th>Category</th><th>Description</th><th>Via</th><th>Party</th><th>Bill</th><th>Amount</th><th>TDS%</th><th>TDS Amt</th><th>Net Paid</th><th>Remarks</th><th></th></tr></thead>
+      <tbody id="exp-body"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- =================== BANK =================== -->
+  <div id="sec-bank" class="sec">
+    <div class="flex-row">
+      <select class="srch" id="bank-month-filter" onchange="renderBank()" style="width:180px"><option value="">All Months</option></select>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="openModal('bank')">+ Add Transaction</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('bnk-body','Bank_Statement')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat bl"><div class="stat-lbl">Opening Balance</div><div class="stat-val" id="bnk-open">NPR 0</div></div>
+      <div class="stat gr"><div class="stat-lbl">Total Credits (In)</div><div class="stat-val" id="bnk-cr" style="color:var(--green)">NPR 0</div></div>
+      <div class="stat rd"><div class="stat-lbl">Total Debits (Out)</div><div class="stat-val" id="bnk-dr" style="color:var(--red)">NPR 0</div></div>
+      <div class="stat gd"><div class="stat-lbl">Closing Balance</div><div class="stat-val" id="bnk-cls">NPR 0</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>#</th><th>Month</th><th>Date</th><th>Purpose</th><th>Debit (Out)</th><th>Credit (In)</th><th>Running Balance</th><th>Remarks</th><th></th></tr></thead>
+      <tbody id="bnk-body"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- =================== ASSETS =================== -->
+  <div id="sec-assets" class="sec">
+    <div class="info-box info-blue">
+      <b>Depreciation (Nepal IT Act, WDV Method):</b> IT Equipment 25% | Office Equipment 15% | Furniture &amp; Fixtures 10% | Vehicles 20% | Buildings 5%
+    </div>
+    <div class="flex-row">
+      <input class="srch" placeholder="Search assets…" oninput="filterRows('ast-body',this.value)" style="width:200px">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="openModal('asset')">+ Add Asset</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('ast-body','Fixed_Assets')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat bl"><div class="stat-lbl">Total Cost</div><div class="stat-val" id="ast-cost">NPR 0</div></div>
+      <div class="stat rd"><div class="stat-lbl">Total Depreciation</div><div class="stat-val" id="ast-dep" style="color:var(--red)">NPR 0</div></div>
+      <div class="stat gr"><div class="stat-lbl">Net Book Value</div><div class="stat-val" id="ast-nbv" style="color:var(--green)">NPR 0</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>#</th><th>Month</th><th>Asset Name</th><th>Qty</th><th>Cost</th><th>Category</th><th>Dep Rate</th><th>Depreciation</th><th>Net Book Value</th><th></th></tr></thead>
+      <tbody id="ast-body"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- =================== PAYROLL =================== -->
+  <div id="sec-payroll" class="sec">
+    <div class="info-box info-green">
+      <b>Nepal Payroll Engine:</b> TDS calculated using progressive tax slabs (FY 2082/83). Annualized income method applied. Deductions for SSF/CIT/Insurance per IRD rules. Marital status and SSF enrollment tracked per employee.
+    </div>
+    <div class="flex-row">
+      <select id="sal-filter" class="srch" style="width:180px" onchange="renderPayroll(this.value)">
+        <option value="">All Months</option>
+      </select>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="openModal('payroll')">+ Add Payroll Entry</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('sal-body','Salary_Register')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat bl"><div class="stat-lbl">Gross Salary</div><div class="stat-val" id="sal-gross">NPR 0</div></div>
+      <div class="stat or"><div class="stat-lbl">TDS Deducted</div><div class="stat-val" id="sal-tds" style="color:var(--orange)">NPR 0</div></div>
+      <div class="stat rd"><div class="stat-lbl">Other Deductions</div><div class="stat-val" id="sal-ded" style="color:var(--red)">NPR 0</div></div>
+      <div class="stat gr"><div class="stat-lbl">Net Paid</div><div class="stat-val" id="sal-net" style="color:var(--green)">NPR 0</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>#</th><th>Employee</th><th>Month</th><th>Basic</th><th>Allowance</th><th>Gross</th><th>SSF/CIT</th><th>Insurance</th><th>Taxable Inc.</th><th>Ann. Tax</th><th>Monthly TDS</th><th>Other Ded.</th><th>Net Salary</th><th>Mode</th><th>Date</th><th></th></tr></thead>
+      <tbody id="sal-body"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- =================== TDS REGISTER =================== -->
+  <div id="sec-tds" class="sec">
+    <div class="info-box info-orange">
+      <b>Nepal TDS Rates (IRD FY 2082/83):</b> Salary — Progressive slab | Rent — 10% (Sec.88) | Contract/Services — 1.5% (VAT invoice) / 15% (non-VAT) | Dividend — 5% | Consultancy without VAT — 15%<br>
+      <b>Deposit Deadline:</b> 25th of the following BS month.
+    </div>
+    <div class="flex-row">
+      <div class="card-title" style="margin:0">TDS Summary Register</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="openModal('tds')">+ Add TDS Entry</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('tds-body','TDS_Register')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat rd"><div class="stat-lbl">Total TDS Deducted</div><div class="stat-val" id="tds-total" style="color:var(--red)">NPR 0</div></div>
+      <div class="stat or"><div class="stat-lbl">TDS Deposited IRD</div><div class="stat-val" id="tds-paid">NPR 0</div></div>
+      <div class="stat gd"><div class="stat-lbl">TDS Pending</div><div class="stat-val" id="tds-pending" style="color:var(--gold)">NPR 0</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>#</th><th>Employee/Party</th><th>PAN</th><th>Nature</th><th>Gross</th><th>TDS Rate</th><th>TDS Amount</th><th>Deposited IRD</th><th>Remaining</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tds-body"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- =================== VAT =================== -->
+  <div id="sec-vat" class="sec">
+    <div class="info-box info-blue">
+      <b>Nepal VAT:</b> Rate 13% | Filing due 25th of following BS month | Input VAT credit applicable | Threshold NPR 5M/year | VAT period aligned to BS months
+    </div>
+    <div class="flex-row">
+      <div class="card-title" style="margin:0">VAT Register</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="openModal('vat')">+ Add VAT Entry</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('vat-body','VAT_Register')">⬇ Export</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat rd"><div class="stat-lbl">Output VAT (Sales)</div><div class="stat-val" id="vat-out">NPR 0</div></div>
+      <div class="stat gr"><div class="stat-lbl">Input VAT (Purchase)</div><div class="stat-val" id="vat-in">NPR 0</div></div>
+      <div class="stat gd"><div class="stat-lbl">Net VAT Payable</div><div class="stat-val" id="vat-net">NPR 0</div></div>
+    </div>
+    <div class="card"><div class="tw">
+      <table class="dt"><thead><tr><th>Date</th><th>Type</th><th>Party</th><th>PAN</th><th>Bill No.</th><th>Taxable Amt</th><th>VAT 13%</th><th>Total</th><th>Remarks</th><th></th></tr></thead>
+      <tbody id="vat-body"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- =================== TAX CALCULATOR =================== -->
+  <div id="sec-taxcalc" class="sec">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">🧮</span>Individual Tax Calculator — FY 2082/83</div>
+        <div class="fgrid">
+          <div class="fg"><label>Employee</label><select id="tc-emp"><option value="">-- Select or Enter --</option></select></div>
+          <div class="fg"><label>Marital Status</label>
+            <select id="tc-marital">
+              <option value="single">Single (Abibaahit)</option>
+              <option value="couple">Married/Couple (Daampatti)</option>
+            </select>
+          </div>
+          <div class="fg"><label>Annual Basic Salary (NPR)</label><input type="number" id="tc-basic" oninput="calcTax()" placeholder="0"></div>
+          <div class="fg"><label>Annual Allowance (NPR)</label><input type="number" id="tc-allow" oninput="calcTax()" placeholder="0"></div>
+          <div class="fg"><label>SSF/CIT Contribution (NPR)</label><input type="number" id="tc-ssf" oninput="calcTax()" placeholder="0"></div>
+          <div class="fg"><label>Life Insurance Premium (NPR)</label><input type="number" id="tc-ins" oninput="calcTax()" placeholder="0"></div>
+          <div class="fg"><label>Medical Insurance (NPR)</label><input type="number" id="tc-med" oninput="calcTax()" placeholder="0"></div>
+          <div class="fg"><label>Home Insurance (NPR)</label><input type="number" id="tc-home" oninput="calcTax()" placeholder="0"></div>
+          <div class="fg"><label>Female Employee?</label>
+            <select id="tc-female" onchange="calcTax()">
+              <option value="0">No</option>
+              <option value="1">Yes — 10% Tax Credit</option>
+            </select>
+          </div>
+          <div class="fg"><label>Remote Area Grade</label>
+            <select id="tc-remote" onchange="calcTax()">
+              <option value="0">Not Applicable</option>
+              <option value="50000">Grade A (NPR 50,000)</option>
+              <option value="40000">Grade B (NPR 40,000)</option>
+              <option value="30000">Grade C (NPR 30,000)</option>
+              <option value="20000">Grade D (NPR 20,000)</option>
+              <option value="10000">Grade E (NPR 10,000)</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:14px;text-align:right">
+          <button class="btn btn-primary" onclick="calcTax()">🧮 Calculate Tax</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-icon">📊</span>Tax Computation</div>
+        <div id="tc-result">
+          <div style="color:var(--muted);font-size:13px;text-align:center;padding:30px 0">Enter details and click Calculate</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-icon">📋</span>Tax Slab Reference — FY 2082/83 (2025/26)</div>
+      <div class="g2">
+        <div>
+          <div class="modal-section">Single (Abibaahit)</div>
+          <div id="slab-single"></div>
+        </div>
+        <div>
+          <div class="modal-section">Couple / Married (Daampatti)</div>
+          <div id="slab-couple"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== P&L =================== -->
+  <div id="sec-pl" class="sec">
+    <div class="flex-row"><span></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-success btn-sm" onclick="exportPL()">⬇ Export Excel</button>
+      </div>
+    </div>
+    <div style="text-align:center;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px">
+      <div style="font-size:18px;font-weight:700;color:var(--ink);font-family:var(--mono)">MEDIFLEX NEPAL PVT. LTD.</div>
+      <div style="font-size:13px;color:var(--muted)" id="pl-fy-label">Profit &amp; Loss Statement — FY 2082/83</div>
+      <div style="font-size:12px;color:var(--muted)">Amounts in Nepali Rupees (NPR)</div>
+    </div>
+    <div class="rpt-block"><div class="rpt-hdr"><span>A. INCOME</span><span>Amount (NPR)</span></div><div id="pl-inc-rows"></div><div class="rpt-row tot"><span>TOTAL INCOME (A)</span><span class="rpa" id="pl-tot-inc">0.00</span></div></div>
+    <div class="rpt-block"><div class="rpt-hdr"><span>B. EXPENSES</span><span>Amount (NPR)</span></div><div id="pl-exp-rows"></div><div class="rpt-row tot"><span>TOTAL EXPENSES (B)</span><span class="rpa" id="pl-tot-exp">0.00</span></div></div>
+    <div class="rpt-block">
+      <div class="rpt-hdr" style="background:var(--green)">C. NET PROFIT / LOSS</div>
+      <div class="rpt-row" id="pl-net-row"><span id="pl-net-label">NET PROFIT BEFORE TAX (A − B)</span><span class="rpa" id="pl-net">0.00</span></div>
+      <div class="rpt-row sub"><span>Corporate Income Tax @ 25%</span><span class="rpa" id="pl-tax">0.00</span></div>
+      <div class="rpt-row tot" style="background:var(--ink);color:#fff"><span>NET PROFIT AFTER TAX</span><span class="rpa" id="pl-nat">0.00</span></div>
+    </div>
+  </div>
+
+  <!-- =================== BALANCE SHEET =================== -->
+  <div id="sec-bs" class="sec">
+    <div class="flex-row"><span></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Print</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportTable('bs-body-a','Balance_Sheet')">⬇ Export</button>
+      </div>
+    </div>
+    <div style="text-align:center;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px">
+      <div style="font-size:18px;font-weight:700;color:var(--ink);font-family:var(--mono)">MEDIFLEX NEPAL PVT. LTD.</div>
+      <div style="font-size:13px;color:var(--muted)" id="bs-fy-label">Balance Sheet — FY 2082/83</div>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="rpt-block">
+          <div class="rpt-hdr">ASSETS</div>
+          <div id="bs-assets"></div>
+          <div class="rpt-row tot"><span>TOTAL ASSETS</span><span class="rpa" id="bs-tot-a">0.00</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="rpt-block">
+          <div class="rpt-hdr">LIABILITIES &amp; EQUITY</div>
+          <div id="bs-liab"></div>
+          <div class="rpt-row tot"><span>TOTAL LIABILITIES &amp; EQUITY</span><span class="rpa" id="bs-tot-l">0.00</span></div>
+        </div>
+      </div>
+    </div>
+    <div id="bs-balance-check" style="text-align:center;margin-top:10px"></div>
+  </div>
+
+  <!-- =================== CASH FLOW =================== -->
+  <div id="sec-cashflow" class="sec">
+    <div class="g2">
+      <div>
+        <div class="rpt-block"><div class="rpt-hdr">A. Operating Activities</div><div id="cf-op"></div><div class="rpt-row tot"><span>Net Operating Cash</span><span class="rpa" id="cf-op-tot">0.00</span></div></div>
+        <div class="rpt-block"><div class="rpt-hdr">B. Investing Activities</div><div id="cf-inv"></div><div class="rpt-row tot"><span>Net Investing Cash</span><span class="rpa" id="cf-inv-tot">0.00</span></div></div>
+        <div class="rpt-block"><div class="rpt-hdr">C. Financing Activities</div><div id="cf-fin"></div><div class="rpt-row tot"><span>Net Financing Cash</span><span class="rpa" id="cf-fin-tot">0.00</span></div></div>
+        <div class="rpt-block">
+          <div class="rpt-hdr" style="background:var(--green)">NET CLOSING CASH</div>
+          <div class="rpt-row sub"><span>Opening Cash</span><span class="rpa" id="cf-open">0.00</span></div>
+          <div class="rpt-row profit"><span>Net Change (A+B+C)</span><span class="rpa" id="cf-change">0.00</span></div>
+          <div class="rpt-row tot" style="background:var(--ink);color:#fff"><span>Closing Cash Balance</span><span class="rpa" id="cf-net">0.00</span></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">Cash Flow Trend</div><div class="chart-box"><canvas id="chart-cf"></canvas></div></div>
+    </div>
+  </div>
+
+  <!-- =================== ATTENDANCE =================== -->
+  <div id="sec-attendance" class="sec">
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:700;font-size:14px;color:var(--ink)">📅 Attendance — <span id="att-fy-label">FY 2082/83</span></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-success btn-sm" onclick="openModal('addMonth')">+ Add Month</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportAtt()">⬇ Export</button>
+        </div>
+      </div>
+      <div class="month-chips" id="month-chips"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+        <span class="badge bs">P = Present</span><span class="badge br">A = Absent</span>
+        <span class="badge bw">H = Holiday</span><span class="badge bg">L = Leave</span>
+        <span class="badge bi">WFH = Work From Home</span>
+      </div>
+    </div>
+    <div class="card" id="att-grid" style="overflow-x:auto;padding:12px;"></div>
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">Monthly Attendance Summary</div>
+      <div class="tw"><table class="dt"><thead><tr><th>Employee</th><th>Present</th><th>Absent</th><th>Leave</th><th>Holiday</th><th>WFH</th><th>Working Days</th><th>Attendance %</th></tr></thead>
+      <tbody id="att-sum"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- =================== STAFF =================== -->
+  <div id="sec-staff" class="sec">
+    <div class="flex-row">
+      <input class="srch" placeholder="Search staff…" oninput="renderStaff(this.value)" style="width:220px">
+      <button class="btn btn-primary" onclick="openModal('staff')">+ Add Staff</button>
+    </div>
+    <div id="staff-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px"></div>
+  </div>
+
+  <!-- =================== SETTINGS =================== -->
+  <div id="sec-settings" class="sec">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">⚙️ Fiscal Year Manager</div>
+        <div class="info-box info-green">Each fiscal year (Shrawan–Ashad) maintains isolated data. Staff directory is shared. Switch between years at any time.</div>
+        <div id="fy-list" style="margin-bottom:16px"></div>
+        <hr style="border:none;border-top:1px solid var(--line);margin:16px 0">
+        <div class="modal-section">Create New Fiscal Year</div>
+        <div class="fgrid" style="max-width:500px">
+          <div class="fg"><label>BS Year (e.g. 2083/84)</label><input type="text" id="new-fy-bs" placeholder="2083/84"></div>
+          <div class="fg"><label>AD Year Range</label><input type="text" id="new-fy-ad" placeholder="2026/27"></div>
+          <div class="fg"><label>Opening Bank Balance</label><input type="number" id="new-fy-bal" placeholder="0"></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="createFY()">✚ Create FY</button>
+          <button class="btn btn-gold" onclick="cloneFY()">📋 Clone Current → New</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 All Years Summary</div>
+        <div class="tw"><table class="dt">
+          <thead><tr><th>FY</th><th>AD</th><th>Income</th><th>Expenses</th><th>Net</th><th>Bank</th><th></th></tr></thead>
+          <tbody id="fy-summary"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔒 Period Locking</div>
+      <div class="info-box info-orange">Locked periods prevent further data entry. This ensures audit integrity. Unlock only with admin confirmation.</div>
+      <div id="period-lock-list"></div>
+    </div>
+  </div>
+
+  <!-- =================== TAX CONFIG =================== -->
+  <div id="sec-taxconfig" class="sec">
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">🔧 Tax Slab Configuration — Single</div>
+        <div id="tc-single-config"></div>
+        <div style="margin-top:12px"><button class="btn btn-primary btn-sm" onclick="saveTaxConfig()">💾 Save Config</button></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔧 Tax Slab Configuration — Couple</div>
+        <div id="tc-couple-config"></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">🔧 TDS Rate Config</div>
+        <div id="tds-rate-config"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔧 Deduction Limits</div>
+        <div id="deduction-config"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== EXPORT =================== -->
+  <div id="sec-export" class="sec">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">📊</div>
+        <div style="font-weight:700;margin-bottom:6px">P&amp;L Statement</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Income &amp; expense summary</div>
+        <button class="btn btn-primary btn-sm" onclick="exportPL()">Download Excel</button>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">🏦</div>
+        <div style="font-weight:700;margin-bottom:6px">Bank Statement</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Bank reconciliation record</div>
+        <button class="btn btn-primary btn-sm" onclick="exportTable('bnk-body','Bank_Statement')">Download Excel</button>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">💼</div>
+        <div style="font-weight:700;margin-bottom:6px">Salary Register</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Monthly payroll records</div>
+        <button class="btn btn-primary btn-sm" onclick="exportTable('sal-body','Salary_Register')">Download Excel</button>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">📄</div>
+        <div style="font-weight:700;margin-bottom:6px">TDS Register</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">IRD compliant TDS record</div>
+        <button class="btn btn-primary btn-sm" onclick="exportTable('tds-body','TDS_Register')">Download Excel</button>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">📋</div>
+        <div style="font-weight:700;margin-bottom:6px">Trial Balance</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Full trial balance export</div>
+        <button class="btn btn-primary btn-sm" onclick="exportTable('trial-body','Trial_Balance')">Download Excel</button>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">📅</div>
+        <div style="font-weight:700;margin-bottom:6px">Attendance</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Selected month attendance</div>
+        <button class="btn btn-primary btn-sm" onclick="exportAtt()">Download Excel</button>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">📦</div>
+        <div style="font-weight:700;margin-bottom:6px">Full JSON Backup</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">All years, all data</div>
+        <button class="btn btn-outline btn-sm" onclick="backup()">Download JSON</button>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:32px;margin-bottom:10px">📥</div>
+        <div style="font-weight:700;margin-bottom:6px">Restore Backup</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Load previous JSON backup</div>
+        <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restore(event)">
+        <button class="btn btn-outline btn-sm" onclick="document.getElementById('restore-file').click()">Upload JSON</button>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- #content -->
+</div><!-- #main -->
+</div><!-- #app -->
+
+<!-- ============================== MODALS ============================== -->
+
+<!-- INCOME MODAL -->
+<div class="ov" id="m-income" onclick="ovClick(event,'income')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add Income Entry <span class="modal-close" onclick="closeModal('income')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>BS Month</label><select id="i-month"></select></div>
+      <div class="fg"><label>Date (AD)</label><input type="date" id="i-date"></div>
+      <div class="fg"><label>Income Head</label>
+        <select id="i-head">
+          <option>Consulting Revenue</option><option>Service Charges</option>
+          <option>Other Income</option><option>Interest Income</option><option>Commission</option>
+        </select>
+      </div>
+      <div class="fg"><label>Description</label><input type="text" id="i-desc"></div>
+      <div class="fg"><label>Party Name</label><input type="text" id="i-party"></div>
+      <div class="fg"><label>PAN No.</label><input type="text" id="i-pan"></div>
+      <div class="fg"><label>Invoice No.</label><input type="text" id="i-inv"></div>
+      <div class="fg"><label>Amount (NPR)</label><input type="number" id="i-amount" oninput="calcInc()" placeholder="0"></div>
+      <div class="fg"><label>VAT Applicable?</label>
+        <select id="i-vat" onchange="calcInc()">
+          <option value="yes">Yes — 13% VAT</option><option value="no">No — Exempt</option>
+        </select>
+      </div>
+      <div class="fg"><label>VAT Amount (auto)</label><input type="number" id="i-vat-amt" readonly></div>
+      <div class="fg"><label>Total incl. VAT (auto)</label><input type="number" id="i-total" readonly></div>
+      <div class="fg"><label>Payment Mode</label>
+        <select id="i-mode">
+          <option>Bank Transfer</option><option>Cash</option><option>Cheque</option><option>RTGS</option><option>Online</option>
+        </select>
+      </div>
+      <div class="fg"><label>Remarks</label><input type="text" id="i-remarks"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('income')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIncome()">💾 Save Income</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPENSE MODAL -->
+<div class="ov" id="m-expense" onclick="ovClick(event,'expense')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add Expense Entry <span class="modal-close" onclick="closeModal('expense')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>BS Month</label><select id="e-month"></select></div>
+      <div class="fg"><label>Date (AD)</label><input type="date" id="e-date"></div>
+      <div class="fg"><label>Category</label>
+        <select id="e-cat">
+          <option>Salary &amp; Wages</option><option>Rent</option><option>TDS/Tax</option>
+          <option>Groceries &amp; Supplies</option><option>Electricity &amp; Utilities</option>
+          <option>Fuel &amp; Transport</option><option>Bank Charges</option>
+          <option>Accounting &amp; Legal</option><option>Cleaning</option>
+          <option>Marketing &amp; Ads</option><option>Depreciation</option>
+          <option>Miscellaneous</option>
+        </select>
+      </div>
+      <div class="fg"><label>Description</label><input type="text" id="e-desc"></div>
+      <div class="fg"><label>Paid Through</label>
+        <select id="e-via"><option>Bank Transfer</option><option>Cash</option><option>Cheque</option><option>RTGS</option></select>
+      </div>
+      <div class="fg"><label>Party Name</label><input type="text" id="e-party"></div>
+      <div class="fg"><label>PAN No.</label><input type="text" id="e-pan"></div>
+      <div class="fg"><label>Bill No.</label><input type="text" id="e-bill"></div>
+      <div class="fg"><label>Amount (NPR)</label><input type="number" id="e-amount" oninput="calcExp()" placeholder="0"></div>
+      <div class="fg"><label>TDS Rate (0 / 1.5 / 10 / 15)</label><input type="number" id="e-tdspct" placeholder="0" oninput="calcExp()"></div>
+      <div class="fg"><label>TDS Amount (auto)</label><input type="number" id="e-tdsamt" readonly></div>
+      <div class="fg"><label>Net Payable (auto)</label><input type="number" id="e-net" readonly></div>
+      <div class="fg"><label>Remarks</label><input type="text" id="e-remarks"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('expense')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExpense()">💾 Save Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- BANK MODAL -->
+<div class="ov" id="m-bank" onclick="ovClick(event,'bank')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+    <div class="modal-title">Add Bank Transaction <span class="modal-close" onclick="closeModal('bank')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>BS Month</label><select id="b-month"></select></div>
+      <div class="fg"><label>Date (AD)</label><input type="date" id="b-date"></div>
+      <div class="fg"><label>Type</label>
+        <select id="b-type">
+          <option value="cr">Credit — Receipt In ↑</option>
+          <option value="dr">Debit — Payment Out ↓</option>
+        </select>
+      </div>
+      <div class="fg"><label>Purpose</label><input type="text" id="b-purpose"></div>
+      <div class="fg"><label>Amount (NPR)</label><input type="number" id="b-amount" placeholder="0"></div>
+      <div class="fg"><label>Remarks</label><input type="text" id="b-remarks"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('bank')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBank()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSET MODAL -->
+<div class="ov" id="m-asset" onclick="ovClick(event,'asset')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="modal-title">Add Fixed Asset <span class="modal-close" onclick="closeModal('asset')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Asset Name</label><input type="text" id="a-name"></div>
+      <div class="fg"><label>Purchase Month</label><select id="a-month"></select></div>
+      <div class="fg"><label>Quantity</label><input type="number" id="a-qty" value="1" min="1"></div>
+      <div class="fg"><label>Total Cost (NPR)</label><input type="number" id="a-cost" oninput="calcAsset()" placeholder="0"></div>
+      <div class="fg"><label>Category &amp; Dep Rate</label>
+        <select id="a-cat" onchange="calcAsset()">
+          <option value="25">IT Equipment (25% WDV)</option>
+          <option value="20">Vehicles (20% WDV)</option>
+          <option value="15">Office Equipment (15% WDV)</option>
+          <option value="10">Furniture &amp; Fixtures (10% WDV)</option>
+          <option value="5">Buildings (5% WDV)</option>
+        </select>
+      </div>
+      <div class="fg"><label>Dep Rate (auto)</label><input type="text" id="a-rate" readonly></div>
+      <div class="fg"><label>Annual Depreciation (auto)</label><input type="number" id="a-dep" readonly></div>
+      <div class="fg"><label>Net Book Value (auto)</label><input type="number" id="a-nbv" readonly></div>
+      <div class="fg"><label>Remarks</label><input type="text" id="a-rem"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('asset')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAsset()">💾 Save Asset</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYROLL MODAL -->
+<div class="ov" id="m-payroll" onclick="ovClick(event,'payroll')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:720px">
+    <div class="modal-title">Add Payroll Entry <span class="modal-close" onclick="closeModal('payroll')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Employee</label><select id="s-emp" onchange="autoFillEmployee()"></select></div>
+      <div class="fg"><label>BS Month</label><select id="s-month"></select></div>
+      <div class="fg"><label>Date Paid (AD)</label><input type="date" id="s-date"></div>
+      <div class="fg"><label>Marital Status</label>
+        <select id="s-marital" onchange="calcPayroll()">
+          <option value="single">Single</option><option value="couple">Married/Couple</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-section">Earnings</div>
+    <div class="fgrid">
+      <div class="fg"><label>Basic Salary (Monthly)</label><input type="number" id="s-basic" oninput="calcPayroll()" placeholder="0"></div>
+      <div class="fg"><label>Taxable Allowance</label><input type="number" id="s-allow-tax" oninput="calcPayroll()" placeholder="0"></div>
+      <div class="fg"><label>Non-Taxable Allowance</label><input type="number" id="s-allow-ntax" oninput="calcPayroll()" placeholder="0"></div>
+    </div>
+    <div class="modal-section">Deductions (Monthly)</div>
+    <div class="fgrid">
+      <div class="fg"><label>SSF/CIT Contribution</label><input type="number" id="s-ssf" oninput="calcPayroll()" placeholder="0"></div>
+      <div class="fg"><label>Life Insurance (annual ÷12)</label><input type="number" id="s-ins" oninput="calcPayroll()" placeholder="0"></div>
+      <div class="fg"><label>Medical Insurance (annual ÷12)</label><input type="number" id="s-med" oninput="calcPayroll()" placeholder="0"></div>
+      <div class="fg"><label>Female Employee?</label><select id="s-female" onchange="calcPayroll()"><option value="0">No</option><option value="1">Yes (+10% credit)</option></select></div>
+    </div>
+    <div class="calc-panel" id="payroll-calc-panel">
+      <div class="calc-title">📊 Tax Computation Preview</div>
+      <div id="payroll-calc-rows"><div style="color:var(--muted);font-size:12px">Fill in salary details above…</div></div>
+    </div>
+    <div class="modal-section">Other</div>
+    <div class="fgrid">
+      <div class="fg"><label>Other Deductions</label><input type="number" id="s-ded" oninput="calcPayroll()" placeholder="0"></div>
+      <div class="fg"><label>Payment Mode</label><select id="s-mode"><option>Bank Transfer</option><option>Cash</option><option>RTGS</option><option>Cheque</option></select></div>
+      <div class="fg"><label>Remarks</label><input type="text" id="s-remarks"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('payroll')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePayroll()">💾 Save Payroll</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOURNAL MODAL -->
+<div class="ov" id="m-journal" onclick="ovClick(event,'journal')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:720px">
+    <div class="modal-title">New Journal Entry <span class="modal-close" onclick="closeModal('journal')">✕</span></div>
+    <div class="fgrid" style="margin-bottom:12px">
+      <div class="fg"><label>Date (AD)</label><input type="date" id="je-date"></div>
+      <div class="fg"><label>BS Month</label><select id="je-month"></select></div>
+      <div class="fg"><label>Reference No.</label><input type="text" id="je-ref" placeholder="JV-001"></div>
+      <div class="fg" style="grid-column:1/-1"><label>Description / Narration</label><input type="text" id="je-desc" placeholder="Journal entry description…"></div>
+    </div>
+    <div class="modal-section">Journal Lines (Debit &amp; Credit)</div>
+    <div style="background:var(--bg);border-radius:6px;padding:10px;margin-bottom:10px">
+      <div style="display:grid;grid-template-columns:2.5fr 1fr 1fr auto;gap:8px;margin-bottom:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);font-family:var(--mono)">ACCOUNT</div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue2);font-family:var(--mono)">DEBIT (Dr)</div>
+        <div style="font-size:11px;font-weight:700;color:var(--red);font-family:var(--mono)">CREDIT (Cr)</div>
+        <div></div>
+      </div>
+      <div id="je-lines"></div>
+      <button class="btn btn-ghost btn-sm je-add-btn" onclick="addJELine()">+ Add Line</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--ink2);color:#fff;border-radius:6px;padding:10px 14px">
+      <span style="font-family:var(--mono);font-size:12px">Total Debits: <b id="je-sum-dr" style="color:#4ade80">0.00</b></span>
+      <span id="je-balance-msg" style="font-size:12px;font-family:var(--mono)">⚖️ Balanced</span>
+      <span style="font-family:var(--mono);font-size:12px">Total Credits: <b id="je-sum-cr" style="color:#f87171">0.00</b></span>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('journal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJournal()">💾 Save Journal Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- STAFF MODAL -->
+<div class="ov" id="m-staff" onclick="ovClick(event,'staff')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Add Staff Member <span class="modal-close" onclick="closeModal('staff')">✕</span></div>
+    <div class="modal-section">Personal Information</div>
+    <div class="fgrid">
+      <div class="fg"><label>Full Name *</label><input type="text" id="sf-name"></div>
+      <div class="fg"><label>Designation</label><input type="text" id="sf-desig"></div>
+      <div class="fg"><label>Address</label><input type="text" id="sf-addr"></div>
+      <div class="fg"><label>Phone</label><input type="text" id="sf-phone"></div>
+      <div class="fg"><label>Email</label><input type="email" id="sf-email"></div>
+      <div class="fg"><label>PAN No.</label><input type="text" id="sf-pan"></div>
+      <div class="fg"><label>Marital Status</label>
+        <select id="sf-marital"><option value="single">Single</option><option value="couple">Married/Couple</option></select>
+      </div>
+      <div class="fg"><label>Gender</label>
+        <select id="sf-gender"><option value="M">Male</option><option value="F">Female</option><option value="O">Other</option></select>
+      </div>
+    </div>
+    <div class="modal-section">Bank &amp; Employment</div>
+    <div class="fgrid">
+      <div class="fg"><label>Bank Account No.</label><input type="text" id="sf-bacc"></div>
+      <div class="fg"><label>Bank Name</label><input type="text" id="sf-bname"></div>
+      <div class="fg"><label>Joining Date (BS)</label><input type="text" id="sf-join" placeholder="2082-01-01"></div>
+      <div class="fg"><label>Basic Salary (Monthly)</label><input type="number" id="sf-basic"></div>
+      <div class="fg"><label>Taxable Allowance</label><input type="number" id="sf-allow-tax"></div>
+      <div class="fg"><label>Non-Taxable Allowance</label><input type="number" id="sf-allow-ntax"></div>
+      <div class="fg"><label>SSF Enrolled?</label><select id="sf-ssf"><option value="1">Yes</option><option value="0">No (CIT)</option></select></div>
+      <div class="fg"><label>Status</label>
+        <select id="sf-status"><option>Active</option><option>Inactive</option><option>On Leave</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('staff')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStaff()">💾 Save Staff</button>
+    </div>
+  </div>
+</div>
+
+<!-- TDS MODAL -->
+<div class="ov" id="m-tds" onclick="ovClick(event,'tds')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="modal-title">Add TDS Entry <span class="modal-close" onclick="closeModal('tds')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Party / Employee</label><input type="text" id="t-party"></div>
+      <div class="fg"><label>PAN No.</label><input type="text" id="t-pan"></div>
+      <div class="fg"><label>Nature of Payment</label>
+        <select id="t-nature">
+          <option>Salary (Progressive Slab)</option>
+          <option>Rent (10%)</option>
+          <option>Service — VAT Invoice (1.5%)</option>
+          <option>Service — Non-VAT Invoice (15%)</option>
+          <option>Contract >50K (1.5%)</option>
+          <option>Commission (15%)</option>
+          <option>Dividend (5%)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Gross Amount (NPR)</label><input type="number" id="t-gross" oninput="calcTDSModal()"></div>
+      <div class="fg"><label>TDS Rate %</label><input type="number" id="t-rate" oninput="calcTDSModal()" placeholder="0"></div>
+      <div class="fg"><label>TDS Amount (auto)</label><input type="number" id="t-amount" readonly></div>
+      <div class="fg"><label>Deposited to IRD?</label><select id="t-paid"><option value="0">Not Yet</option><option value="1">Yes — Paid</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('tds')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTDS()">💾 Save TDS</button>
+    </div>
+  </div>
+</div>
+
+<!-- VAT MODAL -->
+<div class="ov" id="m-vat" onclick="ovClick(event,'vat')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="modal-title">Add VAT Entry <span class="modal-close" onclick="closeModal('vat')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Date (AD)</label><input type="date" id="v-date"></div>
+      <div class="fg"><label>Type</label>
+        <select id="v-type"><option>Output VAT (Sales)</option><option>Input VAT (Purchase)</option></select>
+      </div>
+      <div class="fg"><label>Party Name</label><input type="text" id="v-party"></div>
+      <div class="fg"><label>PAN / VAT No.</label><input type="text" id="v-pan"></div>
+      <div class="fg"><label>Bill No.</label><input type="text" id="v-bill"></div>
+      <div class="fg"><label>Taxable Amount (NPR)</label><input type="number" id="v-taxable" oninput="calcVAT()" placeholder="0"></div>
+      <div class="fg"><label>VAT 13% (auto)</label><input type="number" id="v-vat" readonly></div>
+      <div class="fg"><label>Total (auto)</label><input type="number" id="v-total" readonly></div>
+      <div class="fg"><label>Remarks</label><input type="text" id="v-rem"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('vat')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveVAT()">💾 Save VAT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD MONTH MODAL -->
+<div class="ov" id="m-addMonth" onclick="ovClick(event,'addMonth')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:420px">
+    <div class="modal-title">Add Attendance Month <span class="modal-close" onclick="closeModal('addMonth')">✕</span></div>
+    <div class="fgrid">
+      <div class="fg"><label>Month Name</label>
+        <select id="am-month">
+          <option>Shrawan</option><option>Bhadra</option><option>Ashwin</option><option>Kartik</option>
+          <option>Mangsir</option><option>Poush</option><option>Magh</option><option>Falgun</option>
+          <option>Chaitra</option><option>Baisakh</option><option>Jestha</option><option>Ashadh</option>
+        </select>
+      </div>
+      <div class="fg"><label>Year (BS)</label><input type="text" id="am-year" placeholder="2082"></div>
+      <div class="fg"><label>Working Days</label><input type="number" id="am-days" value="26" min="20" max="32"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('addMonth')">Cancel</button>
+      <button class="btn btn-success" onclick="addAttMonth()">+ Add Month</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ============================== SCRIPTS ============================== -->
+<script>
+'use strict';
+
+// =====================================================================
+// CHART OF ACCOUNTS
+// =====================================================================
+var CHART_OF_ACCOUNTS = [
+  {code:'1001',name:'Cash & Bank',type:'Asset',normal:'Dr'},
+  {code:'1002',name:'Petty Cash',type:'Asset',normal:'Dr'},
+  {code:'1100',name:'Fixed Assets (Cost)',type:'Asset',normal:'Dr'},
+  {code:'1101',name:'Accumulated Depreciation',type:'Asset',normal:'Cr'},
+  {code:'1200',name:'Accounts Receivable',type:'Asset',normal:'Dr'},
+  {code:'1300',name:'Prepaid Expenses',type:'Asset',normal:'Dr'},
+  {code:'2001',name:'Accounts Payable',type:'Liability',normal:'Cr'},
+  {code:'2100',name:'TDS Payable (IRD)',type:'Liability',normal:'Cr'},
+  {code:'2101',name:'VAT Payable (IRD)',type:'Liability',normal:'Cr'},
+  {code:'2200',name:'SSF/CIT Payable',type:'Liability',normal:'Cr'},
+  {code:'2300',name:'Accrued Expenses',type:'Liability',normal:'Cr'},
+  {code:'3001',name:'Share Capital',type:'Equity',normal:'Cr'},
+  {code:'3002',name:'Retained Earnings',type:'Equity',normal:'Cr'},
+  {code:'3003',name:'Current Year P&L',type:'Equity',normal:'Cr'},
+  {code:'4001',name:'Consulting Revenue',type:'Income',normal:'Cr'},
+  {code:'4002',name:'Service Charges',type:'Income',normal:'Cr'},
+  {code:'4003',name:'Interest Income',type:'Income',normal:'Cr'},
+  {code:'4004',name:'Commission Income',type:'Income',normal:'Cr'},
+  {code:'4005',name:'Other Income',type:'Income',normal:'Cr'},
+  {code:'5001',name:'Salary & Wages',type:'Expense',normal:'Dr'},
+  {code:'5002',name:'Rent Expense',type:'Expense',normal:'Dr'},
+  {code:'5003',name:'TDS/Tax Expense',type:'Expense',normal:'Dr'},
+  {code:'5004',name:'Groceries & Supplies',type:'Expense',normal:'Dr'},
+  {code:'5005',name:'Electricity & Utilities',type:'Expense',normal:'Dr'},
+  {code:'5006',name:'Fuel & Transport',type:'Expense',normal:'Dr'},
+  {code:'5007',name:'Bank Charges',type:'Expense',normal:'Dr'},
+  {code:'5008',name:'Accounting & Legal',type:'Expense',normal:'Dr'},
+  {code:'5009',name:'Depreciation',type:'Expense',normal:'Dr'},
+  {code:'5010',name:'Marketing & Ads',type:'Expense',normal:'Dr'},
+  {code:'5011',name:'Miscellaneous',type:'Expense',normal:'Dr'},
+];
+
+// =====================================================================
+// TAX ENGINE — Configurable Rule-Based
+// =====================================================================
+var TAX_CONFIG = {
+  fy:'2082/83',
+  slabs:{
+    single:[
+      {limit:500000,  rate:0.01, label:'First 500,000'},
+      {limit:200000,  rate:0.10, label:'Next 200,000'},
+      {limit:300000,  rate:0.20, label:'Next 300,000'},
+      {limit:1000000, rate:0.30, label:'Next 1,000,000'},
+      {limit:3000000, rate:0.36, label:'Next 3,000,000'},
+      {limit:Infinity,rate:0.39, label:'Above 5,000,000'},
+    ],
+    couple:[
+      {limit:600000,  rate:0.01, label:'First 600,000'},
+      {limit:200000,  rate:0.10, label:'Next 200,000'},
+      {limit:300000,  rate:0.20, label:'Next 300,000'},
+      {limit:900000,  rate:0.30, label:'Next 900,000'},
+      {limit:3000000, rate:0.36, label:'Next 3,000,000'},
+      {limit:Infinity,rate:0.39, label:'Above 5,000,000'},
+    ]
+  },
+  deductionLimits:{
+    retirementFundMax:500000,
+    retirementFundFraction:1/3,
+    lifeInsuranceMax:40000,
+    medInsuranceMax:20000,
+    homeInsuranceMax:5000,
+  },
+  tdsRates:{
+    rent:0.10,
+    contractVAT:0.015,
+    contractNoVAT:0.15,
+    consultancyVAT:0.015,
+    consultancyNoVAT:0.15,
+    commission:0.15,
+    dividend:0.05,
+    vehicleHireVAT:0.015,
+  },
+  corporateTax:0.25,
+  vatRate:0.13,
+  ssfRate:0.11, // employee 11%
+  citRate:0.10, // employee 10% CIT
+};
+
+// =====================================================================
+// PAYROLL TAX ENGINE
+// =====================================================================
+function computeAnnualTax(annualIncome, marital){
+  var slabs = TAX_CONFIG.slabs[marital]||TAX_CONFIG.slabs.single;
+  var tax=0, remaining=annualIncome, breakdown=[];
+  for(var i=0;i<slabs.length;i++){
+    if(remaining<=0) break;
+    var band=Math.min(remaining, slabs[i].limit);
+    var bandTax=band*slabs[i].rate;
+    breakdown.push({label:slabs[i].label,rate:slabs[i].rate,income:band,tax:bandTax});
+    tax+=bandTax;
+    remaining-=band;
+  }
+  return {tax:tax, breakdown:breakdown};
+}
+
+function computeMonthlyTDS(params){
+  // params: basic, allowTax, allowNTax, ssf, insurance, medIns, homeIns, marital, female, remote
+  var monthly = (params.basic||0) + (params.allowTax||0);
+  var annual = monthly * 12;
+  var annualNTax = (params.allowNTax||0)*12;
+  var L = TAX_CONFIG.deductionLimits;
+
+  // Retirement fund deduction
+  var annualSSF = (params.ssf||0)*12;
+  var retDeduct = Math.min(annualSSF, L.retirementFundMax, annual*L.retirementFundFraction);
+
+  // Insurance deductions
+  var insDeduct  = Math.min((params.insurance||0)*12, L.lifeInsuranceMax);
+  var medDeduct  = Math.min((params.medIns||0)*12, L.medInsuranceMax);
+  var homeDeduct = Math.min((params.homeIns||0)*12, L.homeInsuranceMax);
+
+  // Remote area allowance
+  var remoteDeduct = parseFloat(params.remote||0);
+
+  var totalDeductions = retDeduct + insDeduct + medDeduct + homeDeduct + remoteDeduct;
+  var taxableIncome = Math.max(0, annual - totalDeductions);
+
+  var result = computeAnnualTax(taxableIncome, params.marital||'single');
+  var annualTax = result.tax;
+
+  // Female 10% credit
+  if(parseInt(params.female||0)===1) annualTax = annualTax * 0.90;
+
+  var monthlyTDS = annualTax / 12;
+
+  return {
+    monthlyGross: monthly,
+    annualGross: annual,
+    annualNTax: annualNTax,
+    retirementDeduction: retDeduct,
+    insuranceDeduction: insDeduct + medDeduct + homeDeduct,
+    remoteDeduction: remoteDeduct,
+    totalDeductions: totalDeductions,
+    taxableIncome: taxableIncome,
+    annualTax: annualTax,
+    monthlyTDS: monthlyTDS,
+    breakdown: result.breakdown,
+    ssfMonthly: params.ssf||0,
+  };
+}
+
+// =====================================================================
+// DB MODEL
+// =====================================================================
+var DB = {
+  years:{},
+  staff:[],
+  activeFY:'2082/83',
+  fyMeta:{},
+  taxConfig: null,
+  version:'2.0',
+};
+var MONTHS = ['Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra','Baisakh','Jestha','Ashadh'];
+var mChart, cChart, cfChart;
+var currentAttMonth = null;
+var jeLine_count = 0;
+
+// =====================================================================
+// HELPERS
+// =====================================================================
+function gv(id){return (document.getElementById(id)||{}).value||'';}
+function gi(id){return parseFloat(gv(id))||0;}
+function sv(id,v){var el=document.getElementById(id);if(el)el.value=v;}
+function fmt(n){return 'NPR '+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtn(n){return Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function nid(arr){return arr.length?Math.max.apply(null,arr.map(function(r){return r.id||0}))+1:1;}
+function fy(){return DB.years[DB.activeFY]||null;}
+function fym(){return DB.fyMeta[DB.activeFY]||{months:[],daysMap:{}};}
+function getMonthLabel(mkey){return mkey?mkey.replace('_',' '):'—';}
+function getMonthShort(mkey){return mkey?mkey.split('_')[0]:'—';}
+function isLocked(mkey){var lk=fym().locked||{};return !!lk[mkey];}
+function today(){return new Date().toISOString().slice(0,10);}
+function pct(n){return (Math.round(n*100)/100).toFixed(1)+'%';}
+
+function saveDB(){
+  try{localStorage.setItem('mfx_v2',JSON.stringify(DB));}
+  catch(e){toast('Storage full — download a backup!','w');}
+}
+function loadDB(){
+  try{var d=localStorage.getItem('mfx_v2');if(d){var p=JSON.parse(d);if(p&&p.version==='2.0'&&p.years)DB=p;}}
+  catch(e){}
+}
+
+function toast(msg,type,dur){
+  var el=document.createElement('div');
+  el.className='ti '+(type||'i');el.textContent=msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(function(){el.remove();},dur||3200);
+}
+
+// =====================================================================
+// SEED DATA
+// =====================================================================
+function seed(){
+  DB.staff=[
+    {id:1,name:'Anoup Kumar Thapa',desig:'Manager',addr:'Sirutar, Bhaktapur',phone:'9851324698',email:'',pan:'103942078',bacc:'0010035082900027',bname:'Prabhu Bank',join:'2080-09-24',basic:54000,allowTax:36000,allowNTax:0,ssf:1,marital:'single',gender:'M',status:'Active'},
+    {id:2,name:'Jaganath Thapa',desig:'Staff',addr:'Suryabinayak-01, Bhaktapur',phone:'9851011527',email:'',pan:'113795310',bacc:'0010085418700011',bname:'Prabhu Bank',join:'2080-09-24',basic:30000,allowTax:20000,allowNTax:0,ssf:1,marital:'single',gender:'M',status:'Active'},
+    {id:3,name:'Sudha Joshi',desig:'Staff',addr:'Srijananagar, Bhaktapur',phone:'9849989294',email:'',pan:'128592577',bacc:'1090242318800010',bname:'Prabhu Bank',join:'2080-05-01',basic:16200,allowTax:10800,allowNTax:0,ssf:1,marital:'single',gender:'F',status:'Active'},
+    {id:4,name:'Om Sharma',desig:'Staff',addr:'Lokanthali, Bhaktapur',phone:'9840066774',email:'',pan:'133354869',bacc:'1090242316700010',bname:'Prabhu Bank',join:'2080-05-05',basic:15000,allowTax:10000,allowNTax:0,ssf:0,marital:'single',gender:'M',status:'Active'},
+    {id:5,name:'Sarina Ghimire',desig:'Staff',addr:'Jorpati, Kathmandu',phone:'9840378949',email:'',pan:'138628538',bacc:'1090242326400010',bname:'Prabhu Bank',join:'2080-05-12',basic:15000,allowTax:10000,allowNTax:0,ssf:0,marital:'couple',gender:'F',status:'Active'},
+    {id:6,name:'Purna Joshi',desig:'Staff',addr:'Dhangadi',phone:'9851139962',email:'',pan:'108870819',bacc:'01100526200014',bname:'Everest Bank',join:'2080-06-02',basic:24000,allowTax:16000,allowNTax:0,ssf:1,marital:'single',gender:'M',status:'Active'},
+    {id:7,name:'Ojashwinee Sharma',desig:'Staff',addr:'Lokanthali, Bhaktapur',phone:'9741660419',email:'',pan:'140581377',bacc:'0010010386500011',bname:'NMB Bank',join:'2080-06-02',basic:30000,allowTax:20000,allowNTax:0,ssf:1,marital:'couple',gender:'F',status:'Active'},
+    {id:8,name:'Ishan Maharjan',desig:'Staff',addr:'Dhobighat, Lalitpur',phone:'9843768833',email:'',pan:'126420214',bacc:'0010129950200018',bname:'Prabhu Bank',join:'2080-10-01',basic:21000,allowTax:14000,allowNTax:0,ssf:1,marital:'single',gender:'M',status:'Active'},
+    {id:9,name:'Krishna Prasad Khanal',desig:'Staff',addr:'Butwal',phone:'9851318574',email:'',pan:'111922905',bacc:'1140126791300011',bname:'Prabhu Bank',join:'2081-11-18',basic:27000,allowTax:18000,allowNTax:0,ssf:1,marital:'couple',gender:'M',status:'Active'},
+    {id:10,name:'Yagya Raj Joshi',desig:'Staff',addr:'',phone:'',email:'',pan:'300284924',bacc:'4300100001328010',bname:'Rastriya Banijya Bank',join:'',basic:25000,allowTax:0,allowNTax:0,ssf:0,marital:'single',gender:'M',status:'Active'},
+    {id:11,name:'Saswat Gautam',desig:'Staff',addr:'Lalitpur',phone:'9866089829',email:'',pan:'129072119',bacc:'1760288648400015',bname:'Prabhu Bank',join:'2082-01-03',basic:22000,allowTax:0,allowNTax:0,ssf:1,marital:'single',gender:'M',status:'Active'},
+  ];
+
+  DB.fyMeta['2082/83']={
+    ad:'2025/26',openingBal:480837.77,
+    months:['Shrawan_2082','Bhadra_2082','Ashwin_2082','Kartik_2082','Mangsir_2082','Poush_2082','Magh_2082','Falgun_2082','Chaitra_2082','Baisakh_2082','Jestha_2082','Ashadh_2082'],
+    daysMap:{'Shrawan_2082':26,'Bhadra_2082':26,'Ashwin_2082':26,'Kartik_2082':26,'Mangsir_2082':26,'Poush_2082':26,'Magh_2082':26,'Falgun_2082':26,'Chaitra_2082':26,'Baisakh_2082':26,'Jestha_2082':26,'Ashadh_2082':26},
+    locked:{}
+  };
+  DB.activeFY='2082/83';
+
+  // Compute TDS for sample employees
+  function sampleTDS(emp){
+    var r=computeMonthlyTDS({
+      basic:emp.basic,allowTax:emp.allowTax,allowNTax:emp.allowNTax,
+      ssf:emp.ssf?Math.round(emp.basic*0.11):0,insurance:0,medIns:0,homeIns:0,
+      marital:emp.marital||'single',female:(emp.gender==='F')?1:0,remote:0
+    });
+    return r;
+  }
+
+  var fyData={
+    income:[
+      {id:1,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-08-08',head:'Consulting Revenue',desc:'Monthly Revenue – Shrawan',party:'Mediflex Client',pan:'',inv:'INV-082-001',amount:1906019,vatAmt:0,total:1906019,mode:'Bank Transfer',remarks:''},
+      {id:2,monthKey:'Bhadra_2082',month:'Bhadra',date:'2025-09-20',head:'Consulting Revenue',desc:'Monthly Revenue – Bhadra',party:'Mediflex Client',pan:'',inv:'INV-082-002',amount:1906019,vatAmt:0,total:1906019,mode:'Bank Transfer',remarks:''},
+    ],
+    expenses:[
+      {id:1,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-20',cat:'Groceries & Supplies',desc:'Groceries – Bhatbhateni',via:'Cash',party:'Bhatbhateni',pan:'300142084',bill:'TI1644',amount:2105,tdsRate:0,tdsAmt:0,net:2105,remarks:''},
+      {id:2,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',cat:'TDS/Tax',desc:'TDS Deposit (IRD)',via:'Bank Transfer',party:'IRD',pan:'',bill:'',amount:135000,tdsRate:0,tdsAmt:0,net:135000,remarks:''},
+      {id:3,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',cat:'Rent',desc:'Monthly Rent',via:'Bank Transfer',party:'Landlord',pan:'',bill:'',amount:27685,tdsRate:10,tdsAmt:2768.5,net:24916.5,remarks:''},
+      {id:4,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',cat:'Bank Charges',desc:'IPS Charge',via:'Bank Transfer',party:'Bank',pan:'',bill:'',amount:8,tdsRate:0,tdsAmt:0,net:8,remarks:''},
+      {id:5,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',cat:'Accounting & Legal',desc:'Accounting Fees (Jestha & Ashadh)',via:'Bank Transfer',party:'',pan:'',bill:'',amount:22300,tdsRate:0,tdsAmt:0,net:22300,remarks:''},
+      {id:6,monthKey:'Bhadra_2082',month:'Bhadra',date:'2025-08-17',cat:'Groceries & Supplies',desc:'Groceries + Cleaning + Marketing',via:'Bank Transfer',party:'',pan:'',bill:'',amount:30000,tdsRate:0,tdsAmt:0,net:30000,remarks:''},
+      {id:7,monthKey:'Bhadra_2082',month:'Bhadra',date:'2025-09-03',cat:'TDS/Tax',desc:'TDS Deposit IRD',via:'Bank Transfer',party:'IRD',pan:'',bill:'',amount:18000,tdsRate:0,tdsAmt:0,net:18000,remarks:''},
+      {id:8,monthKey:'Bhadra_2082',month:'Bhadra',date:'2025-09-14',cat:'Salary & Wages',desc:'Salary – Bhadra',via:'Bank Transfer',party:'Staff',pan:'',bill:'',amount:518320,tdsRate:0,tdsAmt:0,net:518320,remarks:''},
+    ],
+    bank:[
+      {id:1,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-17',purpose:'Opening Balance',dr:0,cr:480837.77,bal:480837.77,remarks:'Opening'},
+      {id:2,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',purpose:'TDS Deposit',dr:135000,cr:0,bal:345837.77,remarks:''},
+      {id:3,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',purpose:'Rent Payment',dr:27685,cr:0,bal:318152.77,remarks:''},
+      {id:4,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',purpose:'Bank Charge',dr:8,cr:0,bal:318144.77,remarks:'IPS'},
+      {id:5,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-07-23',purpose:'Accounting Fees',dr:22300,cr:0,bal:295844.77,remarks:''},
+      {id:6,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-08-08',purpose:'Revenue Received',dr:0,cr:1906019,bal:2201863.77,remarks:''},
+      {id:7,monthKey:'Shrawan_2082',month:'Shrawan',date:'2025-08-11',purpose:'Salary Payment',dr:311092,cr:0,bal:1890771.77,remarks:''},
+      {id:8,monthKey:'Bhadra_2082',month:'Bhadra',date:'2025-08-17',purpose:'Groceries + Cleaning',dr:30000,cr:0,bal:1860771.77,remarks:''},
+      {id:9,monthKey:'Bhadra_2082',month:'Bhadra',date:'2025-09-03',purpose:'TDS Deposit',dr:18000,cr:0,bal:1842771.77,remarks:''},
+      {id:10,monthKey:'Bhadra_2082',month:'Bhadra',date:'2025-09-14',purpose:'Salary',dr:518320,cr:0,bal:1324451.77,remarks:''},
+    ],
+    salary:[],
+    tds:[],
+    vat:[],
+    assets:[
+      {id:1,monthKey:'Bhadra_2082',month:'Bhadra',name:'Desktop Computer (x4)',qty:4,cost:200000,cat:'IT Equipment (25% WDV)',rate:25,dep:50000,nbv:150000,rem:''},
+      {id:2,monthKey:'Bhadra_2082',month:'Bhadra',name:'Laptop',qty:1,cost:80000,cat:'IT Equipment (25% WDV)',rate:25,dep:20000,nbv:60000,rem:''},
+      {id:3,monthKey:'Bhadra_2082',month:'Bhadra',name:'Printer',qty:1,cost:25000,cat:'IT Equipment (25% WDV)',rate:25,dep:6250,nbv:18750,rem:''},
+      {id:4,monthKey:'Bhadra_2082',month:'Bhadra',name:'Meeting Hall Table',qty:1,cost:45000,cat:'Furniture & Fixtures (10% WDV)',rate:10,dep:4500,nbv:40500,rem:''},
+      {id:5,monthKey:'Bhadra_2082',month:'Bhadra',name:'CC Camera (x4)',qty:4,cost:40000,cat:'IT Equipment (25% WDV)',rate:25,dep:10000,nbv:30000,rem:''},
+    ],
+    journals:[],
+    attendance:{}
+  };
+
+  // Seed payroll with proper tax calculations
+  DB.staff.slice(0,5).forEach(function(emp,i){
+    var ssfAmt = emp.ssf ? Math.round(emp.basic*0.11) : 0;
+    var tc = computeMonthlyTDS({
+      basic:emp.basic,allowTax:emp.allowTax,allowNTax:emp.allowNTax||0,
+      ssf:ssfAmt,insurance:0,medIns:0,homeIns:0,
+      marital:emp.marital||'single',female:emp.gender==='F'?1:0,remote:0
+    });
+    fyData.salary.push({
+      id:i+1,empId:emp.id,emp:emp.name,monthKey:'Shrawan_2082',month:'Shrawan',
+      basic:emp.basic,allowTax:emp.allowTax,allowNTax:emp.allowNTax||0,
+      gross:tc.monthlyGross,ssfAmt:ssfAmt,insAmt:0,
+      taxableInc:Math.round(tc.taxableIncome/12),annualTax:Math.round(tc.annualTax),
+      tds:Math.round(tc.monthlyTDS),ded:0,
+      net:Math.round(tc.monthlyGross - tc.monthlyTDS - ssfAmt),
+      mode:'Bank Transfer',date:'2025-08-11',remarks:'',marital:emp.marital,female:emp.gender==='F'?1:0
+    });
+  });
+
+  // Seed TDS entries
+  fyData.tds=[
+    {id:1,party:'Anoup Kumar Thapa',pan:'103942078',nature:'Salary (Progressive Slab)',gross:1080000,rate:0,amount:15000,paid:0,remaining:15000},
+    {id:2,party:'Landlord (Rent)',pan:'',nature:'Rent (10%)',gross:27685,rate:10,amount:2769,paid:0,remaining:2769},
+  ];
+
+  // Seed attendance for 2 months
+  ['Shrawan_2082','Bhadra_2082'].forEach(function(mkey){
+    fyData.attendance[mkey]={};
+    DB.staff.forEach(function(s){
+      fyData.attendance[mkey][s.name]={};
+      for(var d=1;d<=26;d++){
+        var v=(d===7||d===14||d===21)?'H':(Math.random()>0.1?'P':(Math.random()>0.5?'A':'L'));
+        fyData.attendance[mkey][s.name][d]=v;
+      }
+    });
+  });
+
+  DB.years['2082/83']=fyData;
+  saveDB();
+}
+
+// =====================================================================
+// NAVIGATION
+// =====================================================================
+function goto(id, el){
+  document.querySelectorAll('.sec').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.ni').forEach(function(n){n.classList.remove('active');});
+  var sec=document.getElementById('sec-'+id);
+  if(sec)sec.classList.add('active');
+  if(el)el.classList.add('active');
+  var titles={
+    dashboard:'Dashboard',journal:'Journal Entries',ledger:'General Ledger',trial:'Trial Balance',
+    income:'Income',expenses:'Expenses',bank:'Bank Reconciliation',assets:'Fixed Assets',
+    payroll:'Payroll & TDS',tds:'TDS Register',vat:'VAT Register',taxcalc:'Tax Calculator',
+    pl:'Profit & Loss Statement',bs:'Balance Sheet',cashflow:'Cash Flow Statement',
+    attendance:'Attendance',staff:'Staff Directory',settings:'Fiscal Year & Settings',
+    taxconfig:'Tax Configuration',export:'Export & Backup'
+  };
+  document.getElementById('page-title').textContent=titles[id]||id;
+  render(id);
+}
+
+function render(id){
+  populateMonthDropdowns();
+  if(id==='dashboard') renderDash();
+  else if(id==='journal') renderJournal();
+  else if(id==='ledger') renderLedger();
+  else if(id==='trial') renderTrial();
+  else if(id==='income') renderIncome();
+  else if(id==='expenses') renderExp();
+  else if(id==='bank') renderBank();
+  else if(id==='assets') renderAssets();
+  else if(id==='payroll') renderPayroll('');
+  else if(id==='tds') renderTDS();
+  else if(id==='vat') renderVAT();
+  else if(id==='taxcalc') renderTaxCalc();
+  else if(id==='pl') renderPL();
+  else if(id==='bs') renderBS();
+  else if(id==='cashflow') renderCF();
+  else if(id==='attendance') renderAttSection();
+  else if(id==='staff') renderStaff('');
+  else if(id==='settings') renderSettings();
+  else if(id==='taxconfig') renderTaxConfig();
+}
+
+// =====================================================================
+// MONTH DROPDOWNS
+// =====================================================================
+function populateMonthDropdowns(){
+  var keys=fym().months||[];
+  var targets=['i-month','e-month','b-month','s-month','a-month','je-month'];
+  targets.forEach(function(sid){
+    var sel=document.getElementById(sid);
+    if(!sel)return;
+    var cur=sel.value;
+    sel.innerHTML='';
+    keys.forEach(function(k){sel.add(new Option(getMonthLabel(k),k));});
+    if(cur&&keys.indexOf(cur)>=0)sel.value=cur;
+  });
+  // Filters
+  ['sal-filter','bank-month-filter'].forEach(function(sid){
+    var sf=document.getElementById(sid);
+    if(!sf)return;
+    var cur=sf.value;
+    var baseOpt=sid==='sal-filter'?'All Months':'All Months';
+    sf.innerHTML='<option value="">'+baseOpt+'</option>';
+    keys.forEach(function(k){sf.add(new Option(getMonthLabel(k),k));});
+    if(cur)sf.value=cur;
+  });
+  // Ledger month + account
+  var lm=document.getElementById('ledger-month');
+  if(lm){
+    var cv=lm.value;
+    lm.innerHTML='<option value="">All Months</option>';
+    keys.forEach(function(k){lm.add(new Option(getMonthLabel(k),k));});
+    if(cv)lm.value=cv;
+  }
+  var la=document.getElementById('ledger-acct');
+  if(la){
+    var ca=la.value;
+    la.innerHTML='<option value="">-- Select Account --</option>';
+    CHART_OF_ACCOUNTS.forEach(function(a){la.add(new Option(a.code+' — '+a.name,a.code));});
+    if(ca)la.value=ca;
+  }
+  // TC employee
+  var tce=document.getElementById('tc-emp');
+  if(tce){tce.innerHTML='<option value="">-- Select --</option>';DB.staff.forEach(function(s){tce.add(new Option(s.name,s.id));});}
+}
+
+// =====================================================================
+// DASHBOARD
+// =====================================================================
+function renderDash(){
+  var d=fy();if(!d)return;
+  var totInc=d.income.reduce(function(a,r){return a+(r.total||0);},0);
+  var totExp=d.expenses.reduce(function(a,r){return a+(r.amount||0);},0);
+  var dep=d.assets.reduce(function(a,r){return a+(r.dep||0);},0);
+  var profit=totInc-totExp-dep;
+  var lastBal=d.bank.length?d.bank[d.bank.length-1].bal:0;
+  var tdsRem=d.tds.reduce(function(a,r){return a+(r.remaining||0);},0);
+  var vatOut=d.vat.filter(function(r){return r.type==='Output VAT (Sales)';}).reduce(function(a,r){return a+(r.vat||0);},0);
+  var vatIn=d.vat.filter(function(r){return r.type==='Input VAT (Purchase)';}).reduce(function(a,r){return a+(r.vat||0);},0);
+  var netVAT=vatOut-vatIn;
+  var actStaff=DB.staff.filter(function(s){return s.status==='Active';}).length;
+
+  document.getElementById('d-inc').textContent=fmt(totInc);
+  document.getElementById('d-exp').textContent=fmt(totExp+dep);
+  var pe=document.getElementById('d-profit');
+  pe.textContent=fmt(Math.abs(profit));
+  pe.style.color=profit>=0?'var(--green)':'var(--red)';
+  document.getElementById('d-bank').textContent=fmt(lastBal);
+  document.getElementById('d-tds').textContent=fmt(tdsRem);
+  document.getElementById('d-vat').textContent=fmt(netVAT);
+  document.getElementById('d-staff').textContent=actStaff;
+  document.getElementById('d-fy-lbl').textContent='FY '+DB.activeFY;
+
+  var all=d.expenses.map(function(r){return{date:r.date,desc:r.desc,cat:r.cat,type:'Expense',amt:-(r.amount||0)};})
+    .concat(d.income.map(function(r){return{date:r.date,desc:r.desc,cat:r.head,type:'Income',amt:r.total||0};}));
+  all.sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  document.getElementById('d-recent').innerHTML=all.slice(0,10).map(function(r,i){
+    return '<tr><td>'+r.date+'</td><td>'+r.desc+'</td><td><span class="badge '+(r.type==='Income'?'bs':'bw')+'">'+r.cat+'</span></td><td class="num" style="color:'+(r.amt>=0?'var(--green)':'var(--red)')+'"><b>'+(r.amt>=0?'+':'')+fmtn(Math.abs(r.amt))+'</b></td></tr>';
+  }).join('')||'<tr><td colspan="4" class="empty"><span class="empty-icon">📊</span>No transactions yet</td></tr>';
+
+  var tdsAlert=tdsRem>0?'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px"><span class="badge br">TDS</span> TDS payable NPR '+fmtn(tdsRem)+' — deposit by 25th BS</div>':'';
+  var vatAlert=netVAT>0?'<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px"><span class="badge bw">VAT</span> VAT payable NPR '+fmtn(netVAT)+' — return due 25th BS</div>':'';
+  document.getElementById('d-alerts').innerHTML=tdsAlert+vatAlert+
+    '<div style="padding:10px 0;font-size:13px"><span class="badge bi">FY</span> &nbsp; Active: FY '+DB.activeFY+' | '+(DB.staff.filter(function(s){return s.status==="Active";}).length)+' active staff | '+Object.keys(DB.years).length+' fiscal year(s)</div>';
+
+  renderMonthChart();renderCatChart();
+}
+
+function renderMonthChart(){
+  var ctx=document.getElementById('chart-monthly');if(!ctx)return;
+  var d=fy();if(!d)return;
+  var keys=fym().months||[];
+  var inc={},exp={};
+  keys.forEach(function(k){inc[k]=0;exp[k]=0;});
+  d.income.forEach(function(r){keys.forEach(function(mk){if(mk.indexOf(r.month)===0)inc[mk]+=(r.total||0);});});
+  d.expenses.forEach(function(r){keys.forEach(function(mk){if(mk.indexOf(r.month)===0)exp[mk]+=(r.amount||0);});});
+  var labels=keys.map(function(k){return k.replace('_',' ');});
+  if(mChart)mChart.destroy();
+  mChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:labels,datasets:[
+      {label:'Income',data:keys.map(function(k){return inc[k];}),backgroundColor:'rgba(13,122,78,.75)',borderRadius:4},
+      {label:'Expenses',data:keys.map(function(k){return exp[k];}),backgroundColor:'rgba(192,57,43,.75)',borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:11}}}},
+      scales:{x:{ticks:{font:{size:9}}},y:{ticks:{callback:function(v){return 'NPR '+(v/1000).toFixed(0)+'K';}}}}}
+  });
+}
+
+function renderCatChart(){
+  var ctx=document.getElementById('chart-cat');if(!ctx)return;
+  var d=fy();if(!d)return;
+  var cats={};
+  d.expenses.forEach(function(r){cats[r.cat]=(cats[r.cat]||0)+(r.amount||0);});
+  d.assets.forEach(function(r){if(r.dep>0)cats['Depreciation']=(cats['Depreciation']||0)+r.dep;});
+  var keys=Object.keys(cats),vals=keys.map(function(k){return cats[k];});
+  if(cChart)cChart.destroy();
+  if(!keys.length)return;
+  cChart=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels:keys,datasets:[{data:vals,backgroundColor:['#1a3fa8','#d4a017','#0d7a4e','#c0392b','#5b2d8e','#0d7a6e','#d4680a','#2c3e50','#27ae60','#e91e63','#3498db'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:10}}}}
+  });
+}
+
+// =====================================================================
+// JOURNAL
+// =====================================================================
+function renderJournal(){
+  var d=fy();if(!d)return;
+  var journals=d.journals||[];
+  var rows=[];
+  journals.forEach(function(je){
+    (je.lines||[]).forEach(function(ln,i){
+      rows.push({je:je,line:ln,first:i===0,jnum:je.id});
+    });
+  });
+  document.getElementById('je-body').innerHTML=rows.map(function(r){
+    var cls=r.line.debit>0?'je-debit':'je-credit';
+    return '<tr><td>'+(r.first?'JV-'+String(r.jnum).padStart(4,'0'):'')+'</td>'
+      +'<td>'+(r.first?r.je.date:'')+'</td>'
+      +'<td>'+(r.first?r.je.ref:'')+'</td>'
+      +'<td>'+(r.first?r.je.desc:'')+'</td>'
+      +'<td class="'+cls+'">'+(r.line.debit>0?'':'&nbsp;&nbsp;&nbsp;')+getAccountName(r.line.account)+'</td>'
+      +'<td class="num">'+(r.line.debit>0?fmtn(r.line.debit):'–')+'</td>'
+      +'<td class="num">'+(r.line.credit>0?fmtn(r.line.credit):'–')+'</td>'
+      +'<td>'+(r.first?getMonthLabel(r.je.monthKey):'')+'</td>'
+      +'<td>'+(r.first?'<button class="btn btn-xs btn-outline-red" onclick="del(\'journals\','+r.jnum+')">✕</button>':'')+'</td></tr>';
+  }).join('')||'<tr><td colspan="9" class="empty"><span class="empty-icon">📒</span>No journal entries. Click "+ New Journal Entry".</td></tr>';
+
+  var totDr=journals.reduce(function(a,je){return a+(je.lines||[]).reduce(function(b,l){return b+(l.debit||0);},0);},0);
+  var totCr=journals.reduce(function(a,je){return a+(je.lines||[]).reduce(function(b,l){return b+(l.credit||0);},0);},0);
+  document.getElementById('je-tot-dr').textContent=fmtn(totDr);
+  document.getElementById('je-tot-cr').textContent=fmtn(totCr);
+}
+
+function getAccountName(code){
+  var acct=CHART_OF_ACCOUNTS.find(function(a){return a.code===code;});
+  return acct?acct.code+' – '+acct.name:code||'Unknown';
+}
+
+function addJELine(){
+  var cont=document.getElementById('je-lines');
+  var idx=jeLine_count++;
+  var opts=CHART_OF_ACCOUNTS.map(function(a){return '<option value="'+a.code+'">'+a.code+' — '+a.name+'</option>';}).join('');
+  var div=document.createElement('div');
+  div.className='je-line';
+  div.id='je-line-'+idx;
+  div.innerHTML='<select style="padding:6px 8px;border:1.5px solid var(--line);border-radius:4px;font-size:12px;font-family:var(--font)"><option value="">-- Account --</option>'+opts+'</select>'
+    +'<input type="number" placeholder="Debit" style="padding:6px 8px;border:1.5px solid var(--line);border-radius:4px;font-size:12px;font-family:var(--mono);color:var(--blue2)" oninput="updateJETotals()">'
+    +'<input type="number" placeholder="Credit" style="padding:6px 8px;border:1.5px solid var(--line);border-radius:4px;font-size:12px;font-family:var(--mono);color:var(--red)" oninput="updateJETotals()">'
+    +'<button class="btn btn-xs btn-outline-red" onclick="this.closest(\'.je-line\').remove();updateJETotals()">✕</button>';
+  cont.appendChild(div);
+  updateJETotals();
+}
+
+function updateJETotals(){
+  var lines=document.querySelectorAll('.je-line');
+  var dr=0,cr=0;
+  lines.forEach(function(l){
+    var inputs=l.querySelectorAll('input');
+    dr+=parseFloat(inputs[0].value)||0;
+    cr+=parseFloat(inputs[1].value)||0;
+  });
+  document.getElementById('je-sum-dr').textContent=fmtn(dr);
+  document.getElementById('je-sum-cr').textContent=fmtn(cr);
+  var msg=document.getElementById('je-balance-msg');
+  var diff=Math.abs(dr-cr);
+  if(diff<0.01){msg.textContent='⚖️ Balanced ✓';msg.style.color='#4ade80';}
+  else{msg.textContent='⚠️ Unbalanced by '+fmtn(diff);msg.style.color='#fca5a5';}
+}
+
+function saveJournal(){
+  var d=fy();if(!d)return;
+  if(!d.journals)d.journals=[];
+  var date=gv('je-date'),desc=gv('je-desc'),ref=gv('je-ref'),mkey=gv('je-month');
+  if(!date||!desc){toast('Enter date and description','e');return;}
+  var lines=[];
+  var totDr=0,totCr=0;
+  document.querySelectorAll('.je-line').forEach(function(l){
+    var sel=l.querySelector('select');
+    var inputs=l.querySelectorAll('input');
+    var acct=sel.value;
+    var dr=parseFloat(inputs[0].value)||0;
+    var cr=parseFloat(inputs[1].value)||0;
+    if(acct&&(dr>0||cr>0)){lines.push({account:acct,debit:dr,credit:cr});totDr+=dr;totCr+=cr;}
+  });
+  if(lines.length<2){toast('Add at least 2 journal lines','e');return;}
+  if(Math.abs(totDr-totCr)>0.01){toast('Journal does not balance! Debits must equal Credits.','e');return;}
+  d.journals.push({id:nid(d.journals),date:date,ref:ref,desc:desc,monthKey:mkey,lines:lines});
+  saveDB();closeModal('journal');renderJournal();toast('Journal entry saved — Dr=Cr ✓','s');
+}
+
+// =====================================================================
+// LEDGER
+// =====================================================================
+function renderLedger(){
+  var d=fy();if(!d)return;
+  var acctCode=gv('ledger-acct');
+  var mFilter=gv('ledger-month');
+  if(!acctCode){document.getElementById('ledger-body').innerHTML='<tr><td colspan="6" class="empty">Select an account above</td></tr>';return;}
+  var acct=CHART_OF_ACCOUNTS.find(function(a){return a.code===acctCode;});
+  var rows=[];
+  (d.journals||[]).forEach(function(je){
+    if(mFilter&&je.monthKey!==mFilter)return;
+    (je.lines||[]).forEach(function(ln){
+      if(ln.account===acctCode)rows.push({date:je.date,desc:je.desc,jnum:je.id,debit:ln.debit||0,credit:ln.credit||0,monthKey:je.monthKey});
+    });
+  });
+  rows.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  var bal=0,totDr=0,totCr=0;
+  var isNormalDr=acct&&acct.normal==='Dr';
+  document.getElementById('ledger-body').innerHTML=rows.map(function(r){
+    totDr+=r.debit;totCr+=r.credit;
+    bal+=isNormalDr?(r.debit-r.credit):(r.credit-r.debit);
+    return '<tr><td>'+r.date+'</td><td>'+r.desc+'</td><td style="font-family:var(--mono);font-size:11px">JV-'+String(r.jnum).padStart(4,'0')+'</td>'
+      +'<td class="num" style="color:var(--blue2)">'+(r.debit>0?fmtn(r.debit):'–')+'</td>'
+      +'<td class="num" style="color:var(--red)">'+(r.credit>0?fmtn(r.credit):'–')+'</td>'
+      +'<td class="num"><b>'+fmtn(bal)+'</b></td></tr>';
+  }).join('')||'<tr><td colspan="6" class="empty">No ledger entries for this account</td></tr>';
+  document.getElementById('led-open').textContent='0.00';
+  document.getElementById('led-dr').textContent=fmtn(totDr);
+  document.getElementById('led-cr').textContent=fmtn(totCr);
+}
+
+// =====================================================================
+// TRIAL BALANCE
+// =====================================================================
+function renderTrial(){
+  var d=fy();if(!d)return;
+  document.getElementById('trial-title').textContent='Trial Balance — FY '+DB.activeFY+' ('+( fym().ad||'')+')';
+  document.getElementById('trial-date').textContent=today();
+  // Build trial balance from journals
+  var acctBal={};
+  CHART_OF_ACCOUNTS.forEach(function(a){acctBal[a.code]={dr:0,cr:0};});
+  (d.journals||[]).forEach(function(je){
+    (je.lines||[]).forEach(function(ln){
+      if(acctBal[ln.account]){acctBal[ln.account].dr+=ln.debit||0;acctBal[ln.account].cr+=ln.credit||0;}
+    });
+  });
+  // Also include aggregated data from income/expense/bank
+  // Income: credit entries
+  d.income.forEach(function(r){if(acctBal['4001'])acctBal['4001'].cr+=r.total||0;});
+  // Expenses by category mapping
+  var catMap={'Salary & Wages':'5001','Rent':'5002','TDS/Tax':'5003','Groceries & Supplies':'5004',
+    'Electricity & Utilities':'5005','Fuel & Transport':'5006','Bank Charges':'5007',
+    'Accounting & Legal':'5008','Depreciation':'5009','Marketing & Ads':'5010','Miscellaneous':'5011'};
+  d.expenses.forEach(function(r){var code=catMap[r.cat]||'5011';if(acctBal[code])acctBal[code].dr+=r.amount||0;});
+  // Fixed assets
+  var totAssetCost=d.assets.reduce(function(a,r){return a+(r.cost||0);},0);
+  var totDep=d.assets.reduce(function(a,r){return a+(r.dep||0);},0);
+  if(acctBal['1100'])acctBal['1100'].dr=totAssetCost;
+  if(acctBal['1101'])acctBal['1101'].cr=totDep;
+  if(acctBal['5009'])acctBal['5009'].dr=totDep;
+  // Bank
+  var lastBal=d.bank.length?d.bank[d.bank.length-1].bal:0;
+  if(acctBal['1001'])acctBal['1001'].dr=lastBal;
+  // TDS payable
+  var tdsRem=d.tds.reduce(function(a,r){return a+(r.remaining||0);},0);
+  if(acctBal['2100'])acctBal['2100'].cr=tdsRem;
+  // VAT payable
+  var vatOut=d.vat.filter(function(r){return r.type==='Output VAT (Sales)';}).reduce(function(a,r){return a+(r.vat||0);},0);
+  var vatIn=d.vat.filter(function(r){return r.type==='Input VAT (Purchase)';}).reduce(function(a,r){return a+(r.vat||0);},0);
+  if(acctBal['2101'])acctBal['2101'].cr=Math.max(0,vatOut-vatIn);
+
+  var rows=CHART_OF_ACCOUNTS.map(function(a){
+    var b=acctBal[a.code]||{dr:0,cr:0};
+    var netDr=0,netCr=0;
+    if(a.normal==='Dr'){var net=b.dr-b.cr;if(net>0)netDr=net;else netCr=Math.abs(net);}
+    else{var net2=b.cr-b.dr;if(net2>0)netCr=net2;else netDr=Math.abs(net2);}
+    return {code:a.code,name:a.name,type:a.type,netDr:netDr,netCr:netCr};
+  }).filter(function(r){return r.netDr>0||r.netCr>0;});
+
+  var totDr=rows.reduce(function(a,r){return a+r.netDr;},0);
+  var totCr=rows.reduce(function(a,r){return a+r.netCr;},0);
+  var typeColors={Asset:'bi',Liability:'br',Equity:'bp',Income:'bs',Expense:'bw'};
+  document.getElementById('trial-body').innerHTML=rows.map(function(r){
+    return '<tr><td>'+r.name+'</td><td style="font-family:var(--mono);font-size:11px;color:var(--muted)">'+r.code+'</td>'
+      +'<td><span class="badge '+(typeColors[r.type]||'bi')+'">'+r.type+'</span></td>'
+      +'<td class="num">'+(r.netDr>0?fmtn(r.netDr):'–')+'</td>'
+      +'<td class="num">'+(r.netCr>0?fmtn(r.netCr):'–')+'</td></tr>';
+  }).join('')||'<tr><td colspan="5" class="empty">No data</td></tr>';
+  document.getElementById('trial-tot-dr').textContent=fmtn(totDr);
+  document.getElementById('trial-tot-cr').textContent=fmtn(totCr);
+  var diff=Math.abs(totDr-totCr);
+  var statusEl=document.getElementById('trial-status');
+  if(diff<1){statusEl.innerHTML='<span class="badge bs" style="font-size:13px;padding:6px 14px">✓ Trial Balance is BALANCED</span>';}
+  else{statusEl.innerHTML='<span class="badge br" style="font-size:13px;padding:6px 14px">⚠️ Unbalanced by NPR '+fmtn(diff)+'</span>';}
+}
+
+// =====================================================================
+// INCOME
+// =====================================================================
+function renderIncome(){
+  var d=fy();if(!d)return;
+  document.getElementById('inc-body').innerHTML=d.income.map(function(r,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+getMonthLabel(r.monthKey||r.month)+'</td><td>'+r.date+'</td><td>'+r.head+'</td><td>'+r.desc+'</td><td>'+r.party+'</td><td style="font-family:var(--mono)">'+r.pan+'</td><td style="font-family:var(--mono)">'+r.inv+'</td><td class="num" style="color:var(--green)">'+fmtn(r.amount)+'</td><td class="num">'+fmtn(r.vatAmt)+'</td><td class="num"><b>'+fmtn(r.total)+'</b></td><td>'+r.mode+'</td><td>'+r.remarks+'</td><td><button class="btn btn-xs btn-outline-red" onclick="del(\'income\','+r.id+')">✕</button></td></tr>';
+  }).join('')||'<tr><td colspan="14" class="empty"><span class="empty-icon">💰</span>No income records.</td></tr>';
+  var tot=d.income.reduce(function(a,r){return a+(r.total||0);},0);
+  var bnk=d.income.filter(function(r){return r.mode==='Bank Transfer'||r.mode==='RTGS';}).reduce(function(a,r){return a+(r.total||0);},0);
+  var vatCol=d.income.reduce(function(a,r){return a+(r.vatAmt||0);},0);
+  document.getElementById('inc-tot').textContent=fmt(tot);
+  document.getElementById('inc-bnk').textContent=fmt(bnk);
+  document.getElementById('inc-csh').textContent=fmt(tot-bnk);
+  document.getElementById('inc-vat').textContent=fmt(vatCol);
+}
+
+// =====================================================================
+// EXPENSES
+// =====================================================================
+function renderExp(){
+  var d=fy();if(!d)return;
+  document.getElementById('exp-body').innerHTML=d.expenses.map(function(r,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+getMonthLabel(r.monthKey||r.month)+'</td><td>'+r.date+'</td><td><span class="badge bw" style="white-space:nowrap">'+r.cat+'</span></td><td>'+r.desc+'</td><td>'+r.via+'</td><td>'+r.party+'</td><td style="font-family:var(--mono)">'+r.bill+'</td><td class="num" style="color:var(--red)">'+fmtn(r.amount)+'</td><td class="num" style="font-family:var(--mono)">'+(r.tdsRate?r.tdsRate+'%':'–')+'</td><td class="num" style="color:var(--orange)">'+fmtn(r.tdsAmt||0)+'</td><td class="num"><b>'+fmtn(r.net)+'</b></td><td>'+r.remarks+'</td><td><button class="btn btn-xs btn-outline-red" onclick="del(\'expenses\','+r.id+')">✕</button></td></tr>';
+  }).join('')||'<tr><td colspan="14" class="empty"><span class="empty-icon">📉</span>No expense records.</td></tr>';
+  var rows=d.expenses;
+  document.getElementById('exp-tot').textContent=fmt(rows.reduce(function(a,r){return a+(r.amount||0);},0));
+  document.getElementById('exp-sal').textContent=fmt(rows.filter(function(r){return r.cat==='Salary & Wages';}).reduce(function(a,r){return a+(r.amount||0);},0));
+  document.getElementById('exp-rnt').textContent=fmt(rows.filter(function(r){return r.cat==='Rent';}).reduce(function(a,r){return a+(r.amount||0);},0));
+  document.getElementById('exp-tax').textContent=fmt(rows.filter(function(r){return r.cat==='TDS/Tax';}).reduce(function(a,r){return a+(r.amount||0);},0));
+  document.getElementById('exp-oth').textContent=fmt(rows.filter(function(r){return ['Salary & Wages','Rent','TDS/Tax'].indexOf(r.cat)<0;}).reduce(function(a,r){return a+(r.amount||0);},0));
+}
+
+// =====================================================================
+// BANK
+// =====================================================================
+function renderBank(){
+  var d=fy();if(!d)return;
+  var mFilter=gv('bank-month-filter');
+  var rows=mFilter?d.bank.filter(function(r){return (r.monthKey||'')=== mFilter;}):d.bank;
+  document.getElementById('bnk-body').innerHTML=rows.map(function(r,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+getMonthLabel(r.monthKey||r.month)+'</td><td>'+r.date+'</td><td>'+r.purpose+'</td><td class="num" style="color:var(--red)">'+(r.dr>0?fmtn(r.dr):'–')+'</td><td class="num" style="color:var(--green)">'+(r.cr>0?fmtn(r.cr):'–')+'</td><td class="num"><b>'+fmtn(r.bal)+'</b></td><td>'+r.remarks+'</td><td><button class="btn btn-xs btn-outline-red" onclick="del(\'bank\','+r.id+')">✕</button></td></tr>';
+  }).join('')||'<tr><td colspan="9" class="empty"><span class="empty-icon">🏦</span>No bank records.</td></tr>';
+  var allBal=d.bank;
+  var open=allBal.length?allBal[0].cr:0;
+  var close=allBal.length?allBal[allBal.length-1].bal:0;
+  var cr=allBal.reduce(function(a,r){return a+(r.cr||0);},0);
+  var dr=allBal.reduce(function(a,r){return a+(r.dr||0);},0);
+  document.getElementById('bnk-open').textContent=fmt(open);
+  document.getElementById('bnk-cr').textContent=fmt(cr);
+  document.getElementById('bnk-dr').textContent=fmt(dr);
+  document.getElementById('bnk-cls').textContent=fmt(close);
+}
+
+// =====================================================================
+// ASSETS
+// =====================================================================
+function renderAssets(){
+  var d=fy();if(!d)return;
+  document.getElementById('ast-body').innerHTML=d.assets.map(function(r,i){
+    return '<tr><td>'+(i+1)+'</td><td>'+getMonthLabel(r.monthKey||r.month)+'</td><td><b>'+r.name+'</b></td><td>'+r.qty+'</td><td class="num">'+fmtn(r.cost)+'</td><td><span class="badge bi">'+r.cat+'</span></td><td class="num" style="font-family:var(--mono)">'+r.rate+'%</td><td class="num" style="color:var(--red)">'+fmtn(r.dep)+'</td><td class="num" style="color:var(--green)"><b>'+fmtn(r.nbv)+'</b></td><td><button class="btn btn-xs btn-outline-red" onclick="del(\'assets\','+r.id+')">✕</button></td></tr>';
+  }).join('')||'<tr><td colspan="10" class="empty"><span class="empty-icon">🖥️</span>No assets.</td></tr>';
+  var tot=d.assets.reduce(function(a,r){return a+(r.cost||0);},0);
+  var dep=d.assets.reduce(function(a,r){return a+(r.dep||0);},0);
+  document.getElementById('ast-cost').textContent=fmt(tot);
+  document.getElementById('ast-dep').textContent=fmt(dep);
+  document.getElementById('ast-nbv').textContent=fmt(tot-dep);
+}
+
+// =====================================================================
+// PAYROLL
+// =====================================================================
+function renderPayroll(filter){
+  var d=fy();if(!d)return;
+  var rows=filter?d.salary.filter(function(r){return (r.monthKey||'')=== filter;}):d.salary;
+  document.getElementById('sal-body').innerHTML=rows.map(function(r,i){
+    return '<tr><td>'+(i+1)+'</td><td><b>'+r.emp+'</b></td><td>'+getMonthLabel(r.monthKey||r.month)+'</td><td class="num">'+fmtn(r.basic)+'</td><td class="num">'+fmtn((r.allowTax||0)+(r.allowNTax||0))+'</td><td class="num"><b>'+fmtn(r.gross)+'</b></td><td class="num">'+fmtn(r.ssfAmt||0)+'</td><td class="num">'+fmtn(r.insAmt||0)+'</td><td class="num" style="font-family:var(--mono);font-size:11px">'+fmtn(r.taxableInc||0)+'/mo</td><td class="num" style="color:var(--orange)">'+fmtn(r.annualTax||0)+'</td><td class="num" style="color:var(--red)"><b>'+fmtn(r.tds||0)+'</b></td><td class="num">'+fmtn(r.ded||0)+'</td><td class="num" style="color:var(--green)"><b>'+fmtn(r.net||0)+'</b></td><td>'+r.mode+'</td><td>'+r.date+'</td><td><button class="btn btn-xs btn-outline-red" onclick="del(\'salary\','+r.id+')">✕</button></td></tr>';
+  }).join('')||'<tr><td colspan="16" class="empty"><span class="empty-icon">💼</span>No payroll records.</td></tr>';
+  document.getElementById('sal-gross').textContent=fmt(rows.reduce(function(a,r){return a+(r.gross||0);},0));
+  document.getElementById('sal-tds').textContent=fmt(rows.reduce(function(a,r){return a+(r.tds||0);},0));
+  document.getElementById('sal-ded').textContent=fmt(rows.reduce(function(a,r){return a+(r.ded||0);},0));
+  document.getElementById('sal-net').textContent=fmt(rows.reduce(function(a,r){return a+(r.net||0);},0));
+}
+
+function autoFillEmployee(){
+  var empId=parseInt(gv('s-emp'));
+  if(!empId)return;
+  var emp=DB.staff.find(function(s){return s.id===empId;});
+  if(!emp)return;
+  sv('s-basic',emp.basic||0);
+  sv('s-allow-tax',emp.allowTax||0);
+  sv('s-allow-ntax',emp.allowNTax||0);
+  sv('s-marital',emp.marital||'single');
+  sv('s-female',emp.gender==='F'?1:0);
+  sv('s-ssf',emp.ssf?Math.round(emp.basic*0.11):0);
+  calcPayroll();
+}
+
+function calcPayroll(){
+  var params={
+    basic:gi('s-basic'),allowTax:gi('s-allow-tax'),allowNTax:gi('s-allow-ntax'),
+    ssf:gi('s-ssf'),insurance:gi('s-ins'),medIns:gi('s-med'),homeIns:0,
+    marital:gv('s-marital')||'single',female:parseInt(gv('s-female')||0),remote:0
+  };
+  if(!params.basic)return;
+  var tc=computeMonthlyTDS(params);
+  var net=tc.monthlyGross - tc.monthlyTDS - params.ssf;
+  var rows='';
+  rows+='<div class="calc-row"><span>Monthly Gross (Basic + Taxable Allow)</span><span>NPR '+fmtn(tc.monthlyGross)+'</span></div>';
+  rows+='<div class="calc-row"><span>Annual Gross</span><span>NPR '+fmtn(tc.annualGross)+'</span></div>';
+  rows+='<div class="calc-row deduct"><span>Retirement Fund (SSF/CIT)</span><span>– NPR '+fmtn(tc.retirementDeduction)+'</span></div>';
+  rows+='<div class="calc-row deduct"><span>Insurance Deductions</span><span>– NPR '+fmtn(tc.insuranceDeduction)+'</span></div>';
+  rows+='<div class="calc-row highlight"><span>Annual Taxable Income</span><span>NPR '+fmtn(tc.taxableIncome)+'</span></div>';
+  tc.breakdown.forEach(function(b){
+    if(b.income>0)rows+='<div class="calc-row sub" style="padding-left:16px;font-size:11.5px;color:var(--muted)"><span>'+b.label+' @ '+(b.rate*100).toFixed(0)+'%</span><span>NPR '+fmtn(b.tax)+'</span></div>';
+  });
+  rows+='<div class="calc-row tax"><span>Annual Tax</span><span>NPR '+fmtn(tc.annualTax)+'</span></div>';
+  if(parseInt(gv('s-female')||0))rows+='<div class="calc-row" style="color:var(--teal)"><span>Female 10% Credit</span><span>– NPR '+fmtn(tc.annualTax/0.9*0.1)+'</span></div>';
+  rows+='<div class="calc-row tax"><span><b>Monthly TDS Deduction</b></span><span><b>NPR '+fmtn(tc.monthlyTDS)+'</b></span></div>';
+  rows+='<div class="calc-row net"><span>🏠 Net Take-Home (Monthly)</span><span>NPR '+fmtn(net)+'</span></div>';
+  document.getElementById('payroll-calc-rows').innerHTML=rows;
+}
+
+function savePayroll(){
+  var d=fy();if(!d)return;
+  var empId=parseInt(gv('s-emp'));
+  var emp=DB.staff.find(function(s){return s.id===empId;});
+  if(!emp){toast('Select an employee','e');return;}
+  var params={
+    basic:gi('s-basic'),allowTax:gi('s-allow-tax'),allowNTax:gi('s-allow-ntax'),
+    ssf:gi('s-ssf'),insurance:gi('s-ins'),medIns:gi('s-med'),homeIns:0,
+    marital:gv('s-marital')||'single',female:parseInt(gv('s-female')||0),remote:0
+  };
+  if(!params.basic){toast('Enter basic salary','e');return;}
+  var tc=computeMonthlyTDS(params);
+  var net=Math.round(tc.monthlyGross - tc.monthlyTDS - params.ssf - gi('s-ded'));
+  var mkey=gv('s-month');
+  d.salary.push({
+    id:nid(d.salary),empId:emp.id,emp:emp.name,monthKey:mkey,month:getMonthShort(mkey),
+    basic:params.basic,allowTax:params.allowTax,allowNTax:params.allowNTax,
+    gross:tc.monthlyGross,ssfAmt:params.ssf,insAmt:params.insurance,
+    taxableInc:Math.round(tc.taxableIncome/12),annualTax:Math.round(tc.annualTax),
+    tds:Math.round(tc.monthlyTDS),ded:gi('s-ded'),net:net,
+    mode:gv('s-mode'),date:gv('s-date'),remarks:gv('s-remarks'),
+    marital:params.marital,female:params.female
+  });
+  saveDB();closeModal('payroll');renderPayroll(gv('sal-filter'));toast('Payroll saved with correct TDS!','s');
+}
+
+// =====================================================================
+// TDS REGISTER
+// =====================================================================
+function renderTDS(){
+  var d=fy();if(!d)return;
+  var rows=d.tds||[];
+  document.getElementById('tds-body').innerHTML=rows.map(function(r,i){
+    return '<tr><td>'+(i+1)+'</td><td><b>'+r.party+'</b></td><td style="font-family:var(--mono)">'+r.pan+'</td><td>'+r.nature+'</td><td class="num">'+fmtn(r.gross)+'</td><td class="num" style="font-family:var(--mono)">'+(r.rate?r.rate+'%':'Slab')+'</td><td class="num" style="color:var(--red)"><b>'+fmtn(r.amount)+'</b></td><td class="num" style="color:var(--green)">'+fmtn(r.paid||0)+'</td><td class="num" style="color:var(--gold)">'+fmtn(r.remaining||0)+'</td><td><span class="badge '+((r.remaining||0)<=0?'bs':'br')+'">'+((r.remaining||0)<=0?'Paid':'Pending')+'</span></td><td><button class="btn btn-xs btn-outline-red" onclick="del(\'tds\','+r.id+')">✕</button></td></tr>';
+  }).join('')||'<tr><td colspan="11" class="empty"><span class="empty-icon">📄</span>No TDS entries.</td></tr>';
+  var total=rows.reduce(function(a,r){return a+(r.amount||0);},0);
+  var paid=rows.reduce(function(a,r){return a+(r.paid||0);},0);
+  document.getElementById('tds-total').textContent=fmt(total);
+  document.getElementById('tds-paid').textContent=fmt(paid);
+  document.getElementById('tds-pending').textContent=fmt(total-paid);
+}
+
+function calcTDSModal(){
+  var gross=gi('t-gross'),rate=gi('t-rate');
+  var amt=gross*rate/100;
+  sv('t-amount',amt.toFixed(2));
+}
+
+// =====================================================================
+// VAT
+// =====================================================================
+function renderVAT(){
+  var d=fy();if(!d)return;
+  document.getElementById('vat-body').innerHTML=(d.vat||[]).map(function(r,i){
+    return '<tr><td>'+r.date+'</td><td><span class="badge '+(r.type.indexOf('Output')>=0?'bs':'bi')+'">'+r.type+'</span></td><td>'+r.party+'</td><td style="font-family:var(--mono)">'+r.pan+'</td><td>'+r.bill+'</td><td class="num">'+fmtn(r.taxable)+'</td><td class="num" style="color:var(--red)">'+fmtn(r.vat)+'</td><td class="num"><b>'+fmtn(r.total)+'</b></td><td>'+r.rem+'</td><td><button class="btn btn-xs btn-outline-red" onclick="del(\'vat\','+r.id+')">✕</button></td></tr>';
+  }).join('')||'<tr><td colspan="10" class="empty"><span class="empty-icon">🧾</span>No VAT entries.</td></tr>';
+  var out=(d.vat||[]).filter(function(r){return r.type.indexOf('Output')>=0;}).reduce(function(a,r){return a+(r.vat||0);},0);
+  var inp=(d.vat||[]).filter(function(r){return r.type.indexOf('Input')>=0;}).reduce(function(a,r){return a+(r.vat||0);},0);
+  document.getElementById('vat-out').textContent=fmt(out);
+  document.getElementById('vat-in').textContent=fmt(inp);
+  document.getElementById('vat-net').textContent=fmt(out-inp);
+}
+
+// =====================================================================
+// TAX CALCULATOR
+// =====================================================================
+function renderTaxCalc(){
+  // Populate employee dropdown
+  var sel=document.getElementById('tc-emp');
+  if(sel){sel.innerHTML='<option value="">-- Select --</option>';DB.staff.forEach(function(s){sel.add(new Option(s.name,s.id));});}
+  // Render slab reference
+  function slabHtml(slabs){
+    var cum=0;
+    return slabs.map(function(s){
+      var from=cum,to=s.limit===Infinity?'5,000,000+':fmtn(cum+s.limit);
+      cum+=s.limit===Infinity?0:s.limit;
+      return '<div class="tax-band-row"><span class="tax-band-label">'+s.label+'</span><span class="tax-band-rate">'+(s.rate*100).toFixed(0)+'%</span></div>';
+    }).join('');
+  }
+  document.getElementById('slab-single').innerHTML=slabHtml(TAX_CONFIG.slabs.single);
+  document.getElementById('slab-couple').innerHTML=slabHtml(TAX_CONFIG.slabs.couple);
+}
+
+function calcTax(){
+  var empId=parseInt(gv('tc-emp'));
+  if(empId){
+    var emp=DB.staff.find(function(s){return s.id===empId;});
+    if(emp){
+      sv('tc-basic',emp.basic*12||0);
+      sv('tc-allow',emp.allowTax*12||0);
+      sv('tc-marital',emp.marital||'single');
+      sv('tc-ssf',emp.ssf?Math.round(emp.basic*0.11*12):0);
+      sv('tc-female',emp.gender==='F'?1:0);
+    }
+  }
+  var basic=gi('tc-basic'),allow=gi('tc-allow');
+  var ssf=gi('tc-ssf'),ins=gi('tc-ins'),med=gi('tc-med'),home=gi('tc-home');
+  var marital=gv('tc-marital')||'single';
+  var female=parseInt(gv('tc-female')||0);
+  var remote=parseFloat(gv('tc-remote')||0);
+  if(!basic){document.getElementById('tc-result').innerHTML='<div style="color:var(--muted);text-align:center;padding:20px">Enter annual income to calculate</div>';return;}
+  var L=TAX_CONFIG.deductionLimits;
+  var annual=basic+allow;
+  var retDeduct=Math.min(ssf,L.retirementFundMax,annual*L.retirementFundFraction);
+  var insDeduct=Math.min(ins,L.lifeInsuranceMax);
+  var medDeduct=Math.min(med,L.medInsuranceMax);
+  var homeDeduct=Math.min(home,L.homeInsuranceMax);
+  var totalDed=retDeduct+insDeduct+medDeduct+homeDeduct+remote;
+  var taxable=Math.max(0,annual-totalDed);
+  var result=computeAnnualTax(taxable,marital);
+  var annualTax=result.tax;
+  var femaleCredit=female?annualTax*0.10:0;
+  annualTax=annualTax-femaleCredit;
+  var monthlyTDS=annualTax/12;
+  var html='<div style="margin-bottom:14px">';
+  html+='<div class="calc-row"><span>Annual Gross Income</span><span class="rpa">NPR '+fmtn(annual)+'</span></div>';
+  html+='<div class="calc-row deduct"><span>Retirement Fund Deduction</span><span>– NPR '+fmtn(retDeduct)+'</span></div>';
+  html+='<div class="calc-row deduct"><span>Insurance Deductions</span><span>– NPR '+fmtn(insDeduct+medDeduct+homeDeduct)+'</span></div>';
+  if(remote)html+='<div class="calc-row deduct"><span>Remote Area Allowance</span><span>– NPR '+fmtn(remote)+'</span></div>';
+  html+='<div class="calc-row highlight" style="border-top:2px solid var(--line);padding-top:6px;margin-top:4px"><span><b>Annual Taxable Income</b></span><span>NPR '+fmtn(taxable)+'</span></div>';
+  html+='</div>';
+  html+='<div class="calc-panel" style="margin-top:0;margin-bottom:12px">';
+  html+='<div class="calc-title">Tax Slab Breakdown</div>';
+  result.breakdown.forEach(function(b){
+    if(b.income>0){
+      var fillW=Math.min(100,Math.round(b.income/(taxable)*100));
+      html+='<div style="margin-bottom:10px">';
+      html+='<div class="calc-row" style="margin-bottom:3px"><span style="font-size:12px">'+b.label+' @ '+(b.rate*100).toFixed(0)+'%</span><span style="font-family:var(--mono);color:var(--orange)">NPR '+fmtn(b.tax)+'</span></div>';
+      html+='<div class="tax-progress"><div class="tax-progress-fill" style="width:'+fillW+'%"></div></div>';
+      html+='</div>';
+    }
+  });
+  html+='</div>';
+  html+='<div class="calc-row tax"><span>Total Annual Tax</span><span>NPR '+fmtn(result.tax)+'</span></div>';
+  if(female)html+='<div class="calc-row" style="color:var(--teal)"><span>Female Tax Credit (10%)</span><span>– NPR '+fmtn(femaleCredit)+'</span></div>';
+  html+='<div class="calc-row tax"><span><b>Tax After Credits</b></span><span><b>NPR '+fmtn(annualTax)+'</b></span></div>';
+  html+='<div class="calc-row net"><span>Monthly TDS to Deduct</span><span>NPR '+fmtn(monthlyTDS)+'/month</span></div>';
+  html+='<div class="calc-row" style="font-size:11.5px;color:var(--muted)"><span>Effective Tax Rate</span><span>'+(annual>0?((annualTax/annual)*100).toFixed(2):'0')+'%</span></div>';
+  document.getElementById('tc-result').innerHTML=html;
+}
+
+// =====================================================================
+// P&L
+// =====================================================================
+function renderPL(){
+  var d=fy();if(!d)return;
+  document.getElementById('pl-fy-label').textContent='Profit & Loss Statement — FY '+DB.activeFY+' ('+( fym().ad||'')+')';
+  var totInc=d.income.reduce(function(a,r){return a+(r.total||0);},0);
+  var cats={};
+  d.expenses.forEach(function(r){cats[r.cat]=(cats[r.cat]||0)+(r.amount||0);});
+  var dep=d.assets.reduce(function(a,r){return a+(r.dep||0);},0);
+  if(dep>0)cats['Depreciation (WDV Method)']=(cats['Depreciation (WDV Method)']||0)+dep;
+  var totExp=Object.values(cats).reduce(function(a,v){return a+v;},0);
+  var net=totInc-totExp;
+  var tax=net>0?net*TAX_CONFIG.corporateTax:0;
+  var nat=net-tax;
+  var incHeads={};
+  d.income.forEach(function(r){incHeads[r.head]=(incHeads[r.head]||0)+(r.total||0);});
+  document.getElementById('pl-inc-rows').innerHTML=Object.keys(incHeads).map(function(h){
+    return '<div class="rpt-row sub"><span>'+h+'</span><span class="rpa">'+fmtn(incHeads[h])+'</span></div>';
+  }).join('');
+  document.getElementById('pl-tot-inc').textContent=fmtn(totInc);
+  document.getElementById('pl-exp-rows').innerHTML=Object.keys(cats).map(function(c){
+    return '<div class="rpt-row sub"><span>'+c+'</span><span class="rpa">'+fmtn(cats[c])+'</span></div>';
+  }).join('');
+  document.getElementById('pl-tot-exp').textContent=fmtn(totExp);
+  document.getElementById('pl-net').textContent=fmtn(Math.abs(net));
+  document.getElementById('pl-net-label').textContent=net>=0?'NET PROFIT BEFORE TAX (A − B)':'NET LOSS (B − A)';
+  var nr=document.getElementById('pl-net-row');
+  nr.className='rpt-row '+(net>=0?'profit':'loss');
+  document.getElementById('pl-tax').textContent=fmtn(tax);
+  document.getElementById('pl-nat').textContent=fmtn(Math.abs(nat));
+}
+
+// =====================================================================
+// BALANCE SHEET
+// =====================================================================
+function renderBS(){
+  var d=fy();if(!d)return;
+  document.getElementById('bs-fy-label').textContent='Balance Sheet — As at End of FY '+DB.activeFY;
+  var totInc=d.income.reduce(function(a,r){return a+(r.total||0);},0);
+  var totExpRaw=d.expenses.reduce(function(a,r){return a+(r.amount||0);},0);
+  var dep=d.assets.reduce(function(a,r){return a+(r.dep||0);},0);
+  var totExp=totExpRaw+dep;
+  var net=totInc-totExp;
+  var assetCost=d.assets.reduce(function(a,r){return a+(r.cost||0);},0);
+  var assetNBV=d.assets.reduce(function(a,r){return a+(r.nbv||0);},0);
+  var bankBal=d.bank.length?d.bank[d.bank.length-1].bal:0;
+  var tdsPayable=d.tds.reduce(function(a,r){return a+(r.remaining||0);},0);
+  var vatOut=d.vat.filter(function(r){return r.type.indexOf('Output')>=0;}).reduce(function(a,r){return a+(r.vat||0);},0);
+  var vatIn=d.vat.filter(function(r){return r.type.indexOf('Input')>=0;}).reduce(function(a,r){return a+(r.vat||0);},0);
+  var netVAT=Math.max(0,vatOut-vatIn);
+  var totalAssets=bankBal+assetNBV;
+  var totalLiab=tdsPayable+netVAT;
+  var equity=totalAssets-totalLiab;
+
+  document.getElementById('bs-assets').innerHTML=
+    '<div class="rpt-row section">Current Assets</div>'
+    +'<div class="rpt-row sub"><span>Cash &amp; Bank Balance</span><span class="rpa">'+fmtn(bankBal)+'</span></div>'
+    +'<div class="rpt-row sub tot"><span>Total Current Assets</span><span class="rpa">'+fmtn(bankBal)+'</span></div>'
+    +'<div class="rpt-row section">Non-Current Assets</div>'
+    +'<div class="rpt-row sub"><span>Fixed Assets (at Cost)</span><span class="rpa">'+fmtn(assetCost)+'</span></div>'
+    +'<div class="rpt-row sub2"><span>Less: Accumulated Depreciation</span><span class="rpa">('+fmtn(dep)+')</span></div>'
+    +'<div class="rpt-row sub tot"><span>Net Book Value (Fixed Assets)</span><span class="rpa">'+fmtn(assetNBV)+'</span></div>';
+  document.getElementById('bs-tot-a').textContent=fmtn(totalAssets);
+
+  document.getElementById('bs-liab').innerHTML=
+    '<div class="rpt-row section">Current Liabilities</div>'
+    +'<div class="rpt-row sub"><span>TDS Payable (IRD)</span><span class="rpa">'+fmtn(tdsPayable)+'</span></div>'
+    +'<div class="rpt-row sub"><span>VAT Payable (IRD)</span><span class="rpa">'+fmtn(netVAT)+'</span></div>'
+    +'<div class="rpt-row sub tot"><span>Total Current Liabilities</span><span class="rpa">'+fmtn(totalLiab)+'</span></div>'
+    +'<div class="rpt-row section">Equity</div>'
+    +'<div class="rpt-row sub"><span>Retained Earnings / P&amp;L</span><span class="rpa">'+fmtn(net)+'</span></div>'
+    +'<div class="rpt-row sub"><span>Net Equity</span><span class="rpa">'+fmtn(equity)+'</span></div>';
+  document.getElementById('bs-tot-l').textContent=fmtn(totalLiab+equity);
+
+  var diff=Math.abs(totalAssets-(totalLiab+equity));
+  document.getElementById('bs-balance-check').innerHTML=diff<1
+    ?'<span class="badge bs" style="font-size:13px;padding:6px 14px">✓ Balance Sheet BALANCED — Assets = Liabilities + Equity</span>'
+    :'<span class="badge br" style="font-size:13px;padding:6px 14px">⚠️ Out of balance by NPR '+fmtn(diff)+'</span>';
+}
+
+// =====================================================================
+// CASH FLOW
+// =====================================================================
+function renderCF(){
+  var d=fy();if(!d)return;
+  var opInc=d.income.reduce(function(a,r){return a+(r.total||0);},0);
+  var opExp=d.expenses.reduce(function(a,r){return a+(r.amount||0);},0);
+  var invExp=d.assets.reduce(function(a,r){return a+(r.cost||0);},0);
+  var open=fym().openingBal||0;
+  document.getElementById('cf-op').innerHTML=
+    '<div class="rpt-row sub"><span>Cash received from clients</span><span class="rpa">'+fmtn(opInc)+'</span></div>'
+    +'<div class="rpt-row sub"><span>Cash paid for operations</span><span class="rpa" style="color:var(--red)">('+fmtn(opExp)+')</span></div>';
+  document.getElementById('cf-op-tot').textContent=fmtn(opInc-opExp);
+  document.getElementById('cf-inv').innerHTML='<div class="rpt-row sub"><span>Purchase of fixed assets</span><span class="rpa" style="color:var(--red)">('+fmtn(invExp)+')</span></div>';
+  document.getElementById('cf-inv-tot').textContent=fmtn(-invExp);
+  document.getElementById('cf-fin').innerHTML='<div class="rpt-row sub"><span>Capital introduced</span><span class="rpa">0.00</span></div>';
+  document.getElementById('cf-fin-tot').textContent='0.00';
+  var netChange=(opInc-opExp)-invExp;
+  document.getElementById('cf-open').textContent=fmtn(open);
+  document.getElementById('cf-change').textContent=fmtn(netChange);
+  document.getElementById('cf-net').textContent=fmtn(open+netChange);
+}
+
+// =====================================================================
+// ATTENDANCE
+// =====================================================================
+function renderAttSection(){
+  var meta=fym();var months=meta.months||[];
+  document.getElementById('att-fy-label').textContent='FY '+DB.activeFY;
+  if(!months.length){
+    document.getElementById('month-chips').innerHTML='<div style="color:var(--muted);font-size:13px">No months added. Click "+ Add Month".</div>';
+    document.getElementById('att-grid').innerHTML='';
+    document.getElementById('att-sum').innerHTML='';
+    return;
+  }
+  if(!currentAttMonth||months.indexOf(currentAttMonth)<0)currentAttMonth=months[0];
+  document.getElementById('month-chips').innerHTML=months.map(function(mk){
+    return '<div class="mchip'+(mk===currentAttMonth?' active':'')+'" onclick="selectAttMonth(\''+mk+'\')">'
+      +getMonthLabel(mk)
+      +'<span onclick="delAttMonth(event,\''+mk+'\')" style="margin-left:6px;opacity:.55;font-size:10px;cursor:pointer">✕</span></div>';
+  }).join('');
+  renderAttGrid(currentAttMonth);
+}
+
+function selectAttMonth(mk){currentAttMonth=mk;renderAttSection();}
+
+function renderAttGrid(mkey){
+  var meta=fym();
+  var days=(meta.daysMap&&meta.daysMap[mkey])||26;
+  var d=fy();if(!d)return;
+  if(!d.attendance)d.attendance={};
+  if(!d.attendance[mkey])d.attendance[mkey]={};
+  var staff=DB.staff.filter(function(s){return s.status==='Active';});
+  staff.forEach(function(s){if(!d.attendance[mkey][s.name])d.attendance[mkey][s.name]={};});
+  var html='<div style="font-weight:700;font-size:13px;color:var(--blue2);margin-bottom:10px">'+getMonthLabel(mkey)+' — '+days+' working days</div>';
+  html+='<div style="overflow-x:auto"><table class="att-tbl"><thead><tr><th class="att-emp">Employee</th>';
+  for(var i=1;i<=days;i++)html+='<th>'+i+'</th>';
+  html+='<th style="background:var(--green)">P</th><th style="background:var(--red)">A</th></tr></thead><tbody>';
+  staff.forEach(function(s){
+    html+='<tr><td class="att-emp">'+s.name+'</td>';
+    var p=0,a=0;
+    for(var dd=1;dd<=days;dd++){
+      var v=(d.attendance[mkey][s.name]||{})[dd]||'';
+      if(v==='P')p++;if(v==='A')a++;
+      var sn=s.name.replace(/'/g,"\\'");
+      html+='<td><select class="att-sel att-'+v+'" onchange="setAtt(\''+mkey+'\',\''+sn+'\','+dd+',this)"><option value=""'+(v===''?' selected':'')+'>–</option><option value="P"'+(v==='P'?' selected':'')+'>P</option><option value="A"'+(v==='A'?' selected':'')+'>A</option><option value="H"'+(v==='H'?' selected':'')+'>H</option><option value="L"'+(v==='L'?' selected':'')+'>L</option><option value="WFH"'+(v==='WFH'?' selected':'')+'>WFH</option></select></td>';
+    }
+    html+='<td style="font-weight:700;color:var(--green);background:var(--greenp)">'+p+'</td><td style="font-weight:700;color:var(--red);background:var(--redp)">'+a+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('att-grid').innerHTML=html;
+  renderAttSummary(mkey,days,staff);
+}
+
+function renderAttSummary(mkey,days,staff){
+  var d=fy();if(!d)return;
+  document.getElementById('att-sum').innerHTML=staff.map(function(s){
+    var p=0,a=0,h=0,l=0,w=0;
+    for(var dd=1;dd<=days;dd++){var v=(d.attendance[mkey][s.name]||{})[dd]||'';if(v==='P')p++;else if(v==='A')a++;else if(v==='H')h++;else if(v==='L')l++;else if(v==='WFH')w++;}
+    var pct2=Math.round(p/Math.max(1,days-h)*100);
+    return '<tr><td>'+s.name+'</td><td style="color:var(--green);font-weight:700">'+p+'</td><td style="color:var(--red);font-weight:700">'+a+'</td><td>'+l+'</td><td>'+h+'</td><td>'+w+'</td><td>'+days+'</td><td><span class="badge '+(pct2>=90?'bs':pct2>=75?'bw':'br')+'">'+pct2+'%</span></td></tr>';
+  }).join('');
+}
+
+function setAtt(mkey,name,day,sel){
+  var val=sel.value;
+  var d=fy();if(!d)return;
+  if(!d.attendance)d.attendance={};
+  if(!d.attendance[mkey])d.attendance[mkey]={};
+  if(!d.attendance[mkey][name])d.attendance[mkey][name]={};
+  d.attendance[mkey][name][day]=val;
+  sel.className='att-sel att-'+val;
+  var meta=fym();var days=(meta.daysMap&&meta.daysMap[mkey])||26;
+  var staff=DB.staff.filter(function(s){return s.status==='Active';});
+  renderAttSummary(mkey,days,staff);
+  saveDB();
+}
+
+function addAttMonth(){
+  var month=gv('am-month'),year=gv('am-year')||'2082',days=parseInt(gv('am-days'))||26;
+  var mkey=month+'_'+year;
+  var meta=fym();
+  if(!meta.months)meta.months=[];
+  if(meta.months.indexOf(mkey)>=0){toast('Month already exists','e');return;}
+  meta.months.push(mkey);
+  if(!meta.daysMap)meta.daysMap={};
+  meta.daysMap[mkey]=days;
+  var d=fy();if(!d.attendance)d.attendance={};
+  d.attendance[mkey]={};
+  DB.staff.filter(function(s){return s.status==='Active';}).forEach(function(s){d.attendance[mkey][s.name]={};});
+  currentAttMonth=mkey;
+  saveDB();closeModal('addMonth');renderAttSection();toast(getMonthLabel(mkey)+' added!','s');
+}
+
+function delAttMonth(evt,mkey){
+  evt.stopPropagation();
+  if(!confirm('Remove '+getMonthLabel(mkey)+'? Data will be deleted.'))return;
+  var meta=fym();
+  meta.months=meta.months.filter(function(m){return m!==mkey;});
+  if(meta.daysMap)delete meta.daysMap[mkey];
+  var d=fy();if(d.attendance)delete d.attendance[mkey];
+  if(currentAttMonth===mkey)currentAttMonth=null;
+  saveDB();renderAttSection();toast('Month removed','i');
+}
+
+// =====================================================================
+// STAFF
+// =====================================================================
+function renderStaff(filter){
+  var staff=filter?DB.staff.filter(function(s){return s.name.toLowerCase().indexOf(filter.toLowerCase())>=0;}):DB.staff;
+  document.getElementById('staff-cards').innerHTML=staff.map(function(s){
+    var ini=s.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2);
+    var tc=computeMonthlyTDS({
+      basic:s.basic||0,allowTax:s.allowTax||0,allowNTax:s.allowNTax||0,
+      ssf:s.ssf?Math.round((s.basic||0)*0.11):0,insurance:0,medIns:0,homeIns:0,
+      marital:s.marital||'single',female:s.gender==='F'?1:0,remote:0
+    });
+    return '<div class="card" style="padding:16px">'
+      +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">'
+      +'<div style="width:42px;height:42px;border-radius:50%;background:var(--bluep);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--blue2);font-family:var(--mono)">'+ini+'</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-weight:700;font-size:13px">'+s.name+'</div>'
+      +'<div style="font-size:11.5px;color:var(--muted)">'+(s.desig||'Staff')+'</div></div>'
+      +'<span class="badge '+(s.status==='Active'?'bs':s.status==='On Leave'?'bw':'br')+'" style="font-size:10px">'+s.status+'</span></div>'
+      +'<div style="border-top:1px solid var(--line);padding-top:10px;display:grid;gap:6px;font-size:12px">'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">PAN</span><span style="font-family:var(--mono)">'+(s.pan||'—')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Phone</span><span>'+(s.phone||'—')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Status</span><span>'+s.marital+' | '+(s.gender==='F'?'Female':'Male')+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Gross Salary</span><span style="color:var(--green);font-weight:700;font-family:var(--mono)">'+fmt(tc.monthlyGross)+'/mo</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Monthly TDS</span><span style="color:var(--red);font-family:var(--mono)">'+fmt(tc.monthlyTDS)+'/mo</span></div>'
+      +'<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Net Pay</span><span style="font-weight:700;font-family:var(--mono)">'+fmt(tc.monthlyGross-tc.monthlyTDS-(s.ssf?Math.round((s.basic||0)*0.11):0))+'/mo</span></div>'
+      +'</div></div>';
+  }).join('')||'<div class="empty"><span class="empty-icon">👥</span>No staff found.</div>';
+}
+
+// =====================================================================
+// SETTINGS
+// =====================================================================
+function renderSettings(){
+  updateFYBadges();
+  var fyListEl=document.getElementById('fy-list');
+  fyListEl.innerHTML=Object.keys(DB.years).map(function(fy2){
+    var meta2=DB.fyMeta[fy2]||{};
+    var isActive=fy2===DB.activeFY;
+    return '<div class="fy-card'+(isActive?' active-fy':'')+'">'
+      +'<div><div class="fy-year">'+(isActive?'▶ ':'')+' FY '+fy2+'</div>'
+      +'<div class="fy-meta">AD '+(meta2.ad||'—')+' | '+(meta2.months||[]).length+' months'
+      +(isActive?' | <span class="badge bs">Active</span>':'')+'</div></div>'
+      +(isActive?'':'<button class="btn btn-outline btn-sm" onclick="switchFY(\''+fy2+'\')" style="margin-left:auto">Switch</button>')
+      +'<button class="btn btn-outline-red btn-sm" onclick="deleteFY(\''+fy2+'\')" '+(isActive?'disabled title="Cannot delete active year"':'')+'>🗑</button></div>';
+  }).join('');
+
+  document.getElementById('fy-summary').innerHTML=Object.keys(DB.years).map(function(fyKey){
+    var d2=DB.years[fyKey];
+    var meta2=DB.fyMeta[fyKey]||{};
+    var inc=d2.income.reduce(function(a,r){return a+(r.total||0);},0);
+    var exp=d2.expenses.reduce(function(a,r){return a+(r.amount||0);},0);
+    var net=inc-exp;
+    var lastBal=d2.bank.length?d2.bank[d2.bank.length-1].bal:0;
+    return '<tr style="'+(fyKey===DB.activeFY?'background:var(--bluep);':'')+'">'
+      +'<td><b>FY '+fyKey+'</b></td><td>'+(meta2.ad||'—')+'</td>'
+      +'<td class="num" style="color:var(--green)">'+fmtn(inc)+'</td>'
+      +'<td class="num" style="color:var(--red)">'+fmtn(exp)+'</td>'
+      +'<td class="num" style="color:'+(net>=0?'var(--green)':'var(--red)')+'"><b>'+fmtn(net)+'</b></td>'
+      +'<td class="num">'+fmtn(lastBal)+'</td>'
+      +'<td><button class="btn btn-ghost btn-xs" onclick="switchFY(\''+fyKey+'\')">View</button></td></tr>';
+  }).join('')||'<tr><td colspan="7" class="empty">No fiscal years</td></tr>';
+
+  // Period lock list
+  var meta=fym();
+  var months=meta.months||[];
+  var locked=meta.locked||{};
+  document.getElementById('period-lock-list').innerHTML=months.map(function(mk){
+    var isLk=locked[mk];
+    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)">'
+      +'<span style="font-family:var(--mono);font-size:13px;min-width:140px">'+getMonthLabel(mk)+'</span>'
+      +(isLk?'<span class="lock-badge">🔒 LOCKED</span>':'<span class="unlock-badge">🔓 Open</span>')
+      +(isLk?'<button class="btn btn-ghost btn-sm" onclick="toggleLock(\''+mk+'\',false)">Unlock</button>'
+             :'<button class="btn btn-outline-red btn-sm" onclick="toggleLock(\''+mk+'\',true)">Lock Period</button>')
+      +'</div>';
+  }).join('')||'<div style="color:var(--muted);font-size:13px;padding:10px 0">No months in this FY.</div>';
+}
+
+function toggleLock(mkey,lock){
+  if(lock&&!confirm('Lock '+getMonthLabel(mkey)+'? No changes will be allowed after locking.'))return;
+  var meta=fym();
+  if(!meta.locked)meta.locked={};
+  meta.locked[mkey]=lock;
+  saveDB();renderSettings();toast(getMonthLabel(mkey)+' '+(lock?'locked 🔒':'unlocked 🔓'),'s');
+}
+
+// =====================================================================
+// TAX CONFIG UI
+// =====================================================================
+function renderTaxConfig(){
+  function slabRows(which){
+    return TAX_CONFIG.slabs[which].map(function(s,i){
+      return '<div class="tax-band-row" style="margin-bottom:10px">'
+        +'<div class="fg" style="flex:1"><input type="text" value="'+s.label+'" onchange="TAX_CONFIG.slabs.'+which+'['+i+'].label=this.value" style="font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:4px;width:100%"></div>'
+        +'<div class="fg" style="width:80px"><input type="number" value="'+(s.limit===Infinity?99999999:s.limit)+'" onchange="TAX_CONFIG.slabs.'+which+'['+i+'].limit=(+this.value>=99999999?Infinity:+this.value)" style="font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:4px;width:100%"></div>'
+        +'<div class="fg" style="width:70px"><input type="number" value="'+(s.rate*100).toFixed(0)+'" step="1" onchange="TAX_CONFIG.slabs.'+which+'['+i+'].rate=+this.value/100" style="font-size:12px;padding:5px 8px;border:1px solid var(--line);border-radius:4px;width:100%"><small style="font-size:10px;color:var(--muted)">Rate %</small></div>'
+        +'</div>';
+    }).join('');
+  }
+  document.getElementById('tc-single-config').innerHTML='<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px;margin-bottom:6px"><div style="font-size:10.5px;font-weight:700;color:var(--muted)">BAND LABEL</div><div style="font-size:10.5px;font-weight:700;color:var(--muted)">LIMIT (NPR)</div><div style="font-size:10.5px;font-weight:700;color:var(--muted)">RATE %</div></div>'+slabRows('single');
+  document.getElementById('tc-couple-config').innerHTML='<div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px;margin-bottom:6px"><div style="font-size:10.5px;font-weight:700;color:var(--muted)">BAND LABEL</div><div style="font-size:10.5px;font-weight:700;color:var(--muted)">LIMIT (NPR)</div><div style="font-size:10.5px;font-weight:700;color:var(--muted)">RATE %</div></div>'+slabRows('couple');
+  var L=TAX_CONFIG.deductionLimits;
+  document.getElementById('deduction-config').innerHTML=
+    '<div class="fg" style="margin-bottom:10px"><label>Retirement Fund Max (NPR)</label><input type="number" value="'+L.retirementFundMax+'" onchange="TAX_CONFIG.deductionLimits.retirementFundMax=+this.value"></div>'
+    +'<div class="fg" style="margin-bottom:10px"><label>Life Insurance Max (NPR)</label><input type="number" value="'+L.lifeInsuranceMax+'" onchange="TAX_CONFIG.deductionLimits.lifeInsuranceMax=+this.value"></div>'
+    +'<div class="fg" style="margin-bottom:10px"><label>Medical Insurance Max (NPR)</label><input type="number" value="'+L.medInsuranceMax+'" onchange="TAX_CONFIG.deductionLimits.medInsuranceMax=+this.value"></div>'
+    +'<div class="fg"><label>Home Insurance Max (NPR)</label><input type="number" value="'+L.homeInsuranceMax+'" onchange="TAX_CONFIG.deductionLimits.homeInsuranceMax=+this.value"></div>';
+  var TR=TAX_CONFIG.tdsRates;
+  document.getElementById('tds-rate-config').innerHTML=
+    Object.keys(TR).map(function(k){
+      return '<div class="fg" style="margin-bottom:8px"><label>'+k.replace(/([A-Z])/g,' $1').trim()+'</label>'
+        +'<input type="number" value="'+(TR[k]*100)+'" step="0.1" onchange="TAX_CONFIG.tdsRates.'+k+'=+this.value/100"><small style="font-size:10px;color:var(--muted)">%</small></div>';
+    }).join('');
+}
+
+function saveTaxConfig(){toast('Tax config saved (session)','s');}
+
+// =====================================================================
+// FY MANAGEMENT
+// =====================================================================
+function createFY(){
+  var bs=gv('new-fy-bs').trim(),ad=gv('new-fy-ad').trim(),bal=gi('new-fy-bal');
+  if(!bs||!bs.match(/\d{4}\/\d{2,4}/)){toast('Enter valid BS year e.g. 2083/84','e');return;}
+  if(DB.years[bs]){toast('This FY already exists','e');return;}
+  DB.fyMeta[bs]={ad:ad||'',openingBal:bal,months:[],daysMap:{},locked:{}};
+  DB.years[bs]={income:[],expenses:[],bank:[],salary:[],tds:[],vat:[],assets:[],journals:[],attendance:{}};
+  if(bal>0)DB.years[bs].bank.push({id:1,monthKey:'Opening',month:'Opening',date:today(),purpose:'Opening Balance',dr:0,cr:bal,bal:bal,remarks:'Opening FY '+bs});
+  saveDB();renderSettings();toast('FY '+bs+' created!','s');
+  sv('new-fy-bs','');sv('new-fy-ad','');sv('new-fy-bal','');
+}
+
+function cloneFY(){
+  var bs=gv('new-fy-bs').trim(),ad=gv('new-fy-ad').trim();
+  if(!bs||!bs.match(/\d{4}\/\d{2,4}/)){toast('Enter BS year first','e');return;}
+  if(DB.years[bs]){toast('FY '+bs+' already exists','e');return;}
+  var cur=fy();var lastBal=cur.bank.length?cur.bank[cur.bank.length-1].bal:0;
+  DB.fyMeta[bs]={ad:ad||'',openingBal:lastBal,months:[],daysMap:{},locked:{}};
+  DB.years[bs]={income:[],expenses:[],bank:[{id:1,monthKey:'Opening',month:'Opening',date:today(),purpose:'Opening Balance (c/f from '+DB.activeFY+')',dr:0,cr:lastBal,bal:lastBal,remarks:'Carried forward'}],salary:[],tds:[],vat:[],assets:JSON.parse(JSON.stringify(cur.assets)),journals:[],attendance:{}};
+  saveDB();renderSettings();toast('FY '+bs+' created with c/f balance + assets!','s');
+}
+
+function switchFY(fyKey){
+  DB.activeFY=fyKey;currentAttMonth=null;saveDB();updateFYBadges();renderSettings();
+  var active=document.querySelector('.sec.active');
+  if(active)render(active.id.replace('sec-',''));
+  toast('Switched to FY '+fyKey,'s');
+}
+
+function deleteFY(fyKey){
+  if(fyKey===DB.activeFY){toast('Cannot delete active FY','e');return;}
+  if(!confirm('Delete FY '+fyKey+' and ALL its data?'))return;
+  delete DB.years[fyKey];delete DB.fyMeta[fyKey];saveDB();renderSettings();toast('FY '+fyKey+' deleted','i');
+}
+
+function updateFYBadges(){
+  var bs=DB.activeFY,ad=(DB.fyMeta[bs]||{}).ad||'';
+  document.getElementById('sidebar-fy').textContent='FY '+bs;
+  document.getElementById('topbar-fy').textContent='FY '+bs;
+  document.getElementById('topbar-ad').textContent=ad;
+}
+
+// =====================================================================
+// MODALS
+// =====================================================================
+function openModal(type){
+  populateMonthDropdowns();
+  if(type==='payroll'||type==='tds'){
+    var sid=type==='payroll'?'s-emp':'t-emp';
+    var sel=document.getElementById(sid);
+    if(sel){sel.innerHTML='';DB.staff.forEach(function(s){sel.add(new Option(s.name,s.id));});}
+  }
+  if(type==='journal'){
+    jeLine_count=0;
+    document.getElementById('je-lines').innerHTML='';
+    addJELine();addJELine();
+    document.getElementById('je-date').value=today();
+    document.getElementById('je-ref').value='JV-'+String(nid((fy()||{journals:[]}).journals||[])).padStart(4,'0');
+  }
+  if(type==='addMonth'){
+    sv('am-year',DB.activeFY.split('/')[0]||'2082');
+  }
+  document.getElementById('m-'+type).classList.add('open');
+}
+function closeModal(type){document.getElementById('m-'+type).classList.remove('open');}
+function ovClick(e,type){if(e.target===e.currentTarget)closeModal(type);}
+
+// =====================================================================
+// SAVE FUNCTIONS
+// =====================================================================
+function saveIncome(){
+  var d=fy();if(!d)return;
+  var amt=gi('i-amount');if(!amt){toast('Enter amount','e');return;}
+  var vat=gv('i-vat')==='yes'?amt*TAX_CONFIG.vatRate:0;
+  var mkey=gv('i-month');
+  if(isLocked(mkey)){toast('Period is locked!','e');return;}
+  d.income.push({id:nid(d.income),monthKey:mkey,month:getMonthShort(mkey),date:gv('i-date'),head:gv('i-head'),desc:gv('i-desc'),party:gv('i-party'),pan:gv('i-pan'),inv:gv('i-inv'),amount:amt,vatAmt:vat,total:amt+vat,mode:gv('i-mode'),remarks:gv('i-remarks')});
+  saveDB();closeModal('income');renderIncome();renderDash();toast('Income saved!','s');
+}
+
+function saveExpense(){
+  var d=fy();if(!d)return;
+  var amt=gi('e-amount');if(!amt){toast('Enter amount','e');return;}
+  var tpct=gi('e-tdspct'),tamt=amt*tpct/100;
+  var mkey=gv('e-month');
+  if(isLocked(mkey)){toast('Period is locked!','e');return;}
+  d.expenses.push({id:nid(d.expenses),monthKey:mkey,month:getMonthShort(mkey),date:gv('e-date'),cat:gv('e-cat'),desc:gv('e-desc'),via:gv('e-via'),party:gv('e-party'),pan:gv('e-pan'),bill:gv('e-bill'),amount:amt,tdsRate:tpct,tdsAmt:tamt,net:amt-tamt,remarks:gv('e-remarks')});
+  saveDB();closeModal('expense');renderExp();renderDash();toast('Expense saved!','s');
+}
+
+function saveBank(){
+  var d=fy();if(!d)return;
+  var amt=gi('b-amount');if(!amt){toast('Enter amount','e');return;}
+  var type=gv('b-type');
+  var lastBal=d.bank.length?d.bank[d.bank.length-1].bal:0;
+  var bal=type==='cr'?lastBal+amt:lastBal-amt;
+  var mkey=gv('b-month');
+  if(isLocked(mkey)){toast('Period is locked!','e');return;}
+  d.bank.push({id:nid(d.bank),monthKey:mkey,month:getMonthShort(mkey),date:gv('b-date'),purpose:gv('b-purpose'),dr:type==='dr'?amt:0,cr:type==='cr'?amt:0,bal:bal,remarks:gv('b-remarks')});
+  saveDB();closeModal('bank');renderBank();toast('Transaction saved!','s');
+}
+
+function saveAsset(){
+  var d=fy();if(!d)return;
+  var cost=gi('a-cost');if(!cost){toast('Enter cost','e');return;}
+  var rate=parseFloat(gv('a-cat'))||10;
+  var catNames={25:'IT Equipment (25% WDV)',20:'Vehicles (20% WDV)',15:'Office Equipment (15% WDV)',10:'Furniture & Fixtures (10% WDV)',5:'Buildings (5% WDV)'};
+  var mkey=gv('a-month');
+  if(isLocked(mkey)){toast('Period is locked!','e');return;}
+  d.assets.push({id:nid(d.assets),monthKey:mkey,month:getMonthShort(mkey),name:gv('a-name'),qty:parseInt(gv('a-qty'))||1,cost:cost,cat:catNames[rate]||'',rate:rate,dep:cost*rate/100,nbv:cost-(cost*rate/100),rem:gv('a-rem')});
+  saveDB();closeModal('asset');renderAssets();toast('Asset saved!','s');
+}
+
+function saveTDS(){
+  var d=fy();if(!d)return;
+  var gross=gi('t-gross'),amt=gi('t-amount');
+  d.tds.push({id:nid(d.tds),party:gv('t-party'),pan:gv('t-pan'),nature:gv('t-nature'),gross:gross,rate:gi('t-rate'),amount:amt,paid:parseInt(gv('t-paid'))?amt:0,remaining:parseInt(gv('t-paid'))?0:amt});
+  saveDB();closeModal('tds');renderTDS();toast('TDS entry saved!','s');
+}
+
+function saveVAT(){
+  var d=fy();if(!d)return;
+  var taxable=gi('v-taxable'),vat=taxable*TAX_CONFIG.vatRate;
+  d.vat.push({id:nid(d.vat),date:gv('v-date'),type:gv('v-type'),party:gv('v-party'),pan:gv('v-pan'),bill:gv('v-bill'),taxable:taxable,vat:vat,total:taxable+vat,rem:gv('v-rem')});
+  saveDB();closeModal('vat');renderVAT();toast('VAT entry saved!','s');
+}
+
+function saveStaff(){
+  var name=gv('sf-name');if(!name){toast('Enter full name','e');return;}
+  DB.staff.push({
+    id:nid(DB.staff),name:name,desig:gv('sf-desig'),addr:gv('sf-addr'),
+    phone:gv('sf-phone'),email:gv('sf-email'),pan:gv('sf-pan'),
+    bacc:gv('sf-bacc'),bname:gv('sf-bname'),join:gv('sf-join'),
+    basic:gi('sf-basic'),allowTax:gi('sf-allow-tax'),allowNTax:gi('sf-allow-ntax'),
+    ssf:parseInt(gv('sf-ssf')||1),marital:gv('sf-marital')||'single',gender:gv('sf-gender')||'M',status:gv('sf-status')
+  });
+  saveDB();closeModal('staff');renderStaff('');toast('Staff added!','s');
+}
+
+// =====================================================================
+// CALC HELPERS
+// =====================================================================
+function calcInc(){var amt=gi('i-amount'),vat=gv('i-vat')==='yes'?amt*TAX_CONFIG.vatRate:0;sv('i-vat-amt',vat.toFixed(2));sv('i-total',(amt+vat).toFixed(2));}
+function calcExp(){var amt=gi('e-amount'),pct2=gi('e-tdspct'),tds=amt*pct2/100;sv('e-tdsamt',tds.toFixed(2));sv('e-net',(amt-tds).toFixed(2));}
+function calcAsset(){var c=gi('a-cost'),r=parseFloat(gv('a-cat'))||10;sv('a-rate',r+'%');sv('a-dep',(c*r/100).toFixed(2));sv('a-nbv',(c-c*r/100).toFixed(2));}
+function calcVAT(){var t=gi('v-taxable');sv('v-vat',(t*TAX_CONFIG.vatRate).toFixed(2));sv('v-total',(t*(1+TAX_CONFIG.vatRate)).toFixed(2));}
+
+// =====================================================================
+// DELETE
+// =====================================================================
+function del(table,id){
+  if(!confirm('Delete this record?'))return;
+  var d=fy();if(!d)return;
+  d[table]=d[table].filter(function(r){return r.id!==id;});
+  saveDB();
+  var active=document.querySelector('.sec.active');
+  if(active)render(active.id.replace('sec-',''));
+  toast('Deleted','i');
+}
+
+function filterRows(bodyId,val){
+  document.getElementById(bodyId).querySelectorAll('tr').forEach(function(r){
+    r.style.display=r.textContent.toLowerCase().indexOf(val.toLowerCase())>=0?'':'none';
+  });
+}
+
+// =====================================================================
+// EXPORTS
+// =====================================================================
+function exportPL(){
+  var wb=XLSX.utils.book_new();var d=fy();if(!d){toast('No data','e');return;}
+  var totInc=d.income.reduce(function(a,r){return a+(r.total||0);},0);
+  var cats={};d.expenses.forEach(function(r){cats[r.cat]=(cats[r.cat]||0)+(r.amount||0);});
+  var dep=d.assets.reduce(function(a,r){return a+(r.dep||0);},0);
+  if(dep>0)cats['Depreciation (WDV)']=(cats['Depreciation (WDV)']||0)+dep;
+  var totExp=Object.values(cats).reduce(function(a,v){return a+v;},0);
+  var net=totInc-totExp;var tax=net>0?net*TAX_CONFIG.corporateTax:0;
+  var data=[['MEDIFLEX NEPAL PVT. LTD.'],['P&L Statement – FY '+DB.activeFY+' ('+( fym().ad||'')+')'],[''],['A. INCOME','Amount (NPR)']];
+  d.income.forEach(function(r){data.push([r.head,r.total]);});
+  data.push(['TOTAL INCOME',totInc],[''],['B. EXPENSES','Amount (NPR)']);
+  Object.keys(cats).forEach(function(c){data.push([c,cats[c]]);});
+  data.push(['TOTAL EXPENSES',totExp],[''],['NET PROFIT / (LOSS)',net],['Corporate Tax @ 25%',tax],['NET PROFIT AFTER TAX',net-tax]);
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(data),'P&L');
+  XLSX.writeFile(wb,'Mediflex_PL_FY'+DB.activeFY.replace('/','_')+'.xlsx');
+  toast('P&L exported!','s');
+}
+
+function exportTable(bodyId,name){
+  var table=document.getElementById(bodyId);if(!table){toast('No data','e');return;}
+  var rows=[];
+  table.querySelectorAll('tr').forEach(function(tr){
+    var row=[];tr.querySelectorAll('td,th').forEach(function(td){row.push(td.textContent.trim());});
+    if(row.some(function(c){return c;}))rows.push(row);
+  });
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),name.slice(0,31));
+  XLSX.writeFile(wb,'Mediflex_'+name+'_FY'+DB.activeFY.replace('/','_')+'.xlsx');
+  toast('Exported!','s');
+}
+
+function exportAtt(){
+  if(!currentAttMonth){toast('Select a month first','e');return;}
+  var mkey=currentAttMonth;var meta=fym();
+  var days=(meta.daysMap&&meta.daysMap[mkey])||26;var d=fy();if(!d)return;
+  var staff=DB.staff.filter(function(s){return s.status==='Active';});
+  var rows=[['MEDIFLEX NEPAL – Attendance: '+getMonthLabel(mkey)+' | FY '+DB.activeFY]];
+  rows.push(['Employee'].concat(Array.from({length:days},function(_,i){return i+1;}).concat(['Present','Absent'])));
+  staff.forEach(function(s){
+    var p=0,a=0,row=[s.name];
+    for(var dd=1;dd<=days;dd++){var v=(d.attendance[mkey]&&d.attendance[mkey][s.name]&&d.attendance[mkey][s.name][dd])||'';row.push(v);if(v==='P')p++;if(v==='A')a++;}
+    row.push(p,a);rows.push(row);
+  });
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),mkey.slice(0,31));
+  XLSX.writeFile(wb,'Mediflex_Attendance_'+mkey+'.xlsx');
+  toast('Attendance exported!','s');
+}
+
+function backup(){
+  var blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='MediflexNP_Backup_v2_'+today()+'.json';a.click();
+  toast('Backup downloaded!','s');
+}
+
+function restore(e){
+  var f=e.target.files[0];if(!f)return;
+  var r=new FileReader();
+  r.onload=function(ev){
+    try{
+      var p=JSON.parse(ev.target.result);
+      if(p&&p.years){DB=p;saveDB();updateFYBadges();goto('dashboard',document.getElementById('nav-dashboard'));toast('Data restored!','s');}
+      else{toast('Invalid backup file','e');}
+    }catch(err){toast('Could not read file: '+err.message,'e');}
+  };
+  r.readAsText(f);
+}
+
+// =====================================================================
+// KEYBOARD SHORTCUTS
+// =====================================================================
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.querySelectorAll('.ov.open').forEach(function(o){o.classList.remove('open');});
+  }
+});
+
+// =====================================================================
+// INIT
+// =====================================================================
+loadDB();
+if(!DB.years||!Object.keys(DB.years).length||!DB.version||DB.version!=='2.0'){seed();}
+if(!DB.staff||!DB.staff.length){seed();}
+// Ensure all FY data has journals array
+Object.keys(DB.years).forEach(function(fy2){if(!DB.years[fy2].journals)DB.years[fy2].journals=[];});
+updateFYBadges();
+populateMonthDropdowns();
+renderDash();
+</script>
+</body>
+</html>
